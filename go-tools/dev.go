@@ -19,4 +19,8 @@ package tools
 
 import (
 	_ "honnef.co/go/tools/cmd/staticcheck"
+
+	// Temporary
+	_ "github.com/dhermes/golembic"
+	_ "github.com/dhermes/golembic/postgres"
 )

@@ -10,6 +10,10 @@ github.com/apparentlymart/go-textseg/textseg
 # github.com/apparentlymart/go-textseg/v13 v13.0.0
 ## explicit; go 1.16
 github.com/apparentlymart/go-textseg/v13/textseg
+# github.com/dhermes/golembic v0.0.0-20211030045149-ad38e08f2757
+## explicit; go 1.15
+github.com/dhermes/golembic
+github.com/dhermes/golembic/postgres
 # github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
