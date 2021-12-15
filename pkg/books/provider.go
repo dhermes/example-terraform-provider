@@ -74,6 +74,6 @@ func providerConfigure(_ context.Context, d *schema.ResourceData) (meta interfac
 		return
 	}
 
-	meta = c
+	meta = &c
 	return
 }

@@ -16,7 +16,6 @@ package books
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -84,7 +83,7 @@ func resourceAuthorCreate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d", aar.AuthorID))
+	d.SetId(aar.AuthorID.String())
 	return resourceAuthorRead(ctx, d, meta)
 }
 

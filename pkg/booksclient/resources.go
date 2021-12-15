@@ -32,9 +32,9 @@ type Author struct {
 	// LastName is the surname of the author.
 	LastName string `json:"last_name"`
 	// ID is the database identifier, if the author has already been created.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID *uuid.UUID `json:"id,omitempty"`
 	// BookCount is the number of books by the author in the books service.
-	BookCount uint32 `json:"book_count"`
+	BookCount uint32 `json:"book_count,omitempty"`
 }
 
 // Book contains information about a book.
@@ -48,5 +48,5 @@ type Book struct {
 	// PublishDate is the date the book was published.
 	PublishDate *time.Time `json:"publish_date,omitempty"`
 	// ID is the database identifier, if the book has already been created.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID *uuid.UUID `json:"id,omitempty"`
 }

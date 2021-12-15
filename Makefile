@@ -17,26 +17,28 @@ help:
 	@echo 'Makefile for `example-terraform-provider` project'
 	@echo ''
 	@echo 'Usage:'
-	@echo '   make serve                       Run the Books API application'
-	@echo '   make seed-data                   Seed the database via the Books API'
-	@echo '   make clean                       Forcefully remove all generated artifacts (e.g. Terraform state files)'
-	@echo '   make vet                         Run `go vet` over source tree'
-	@echo '   make shellcheck                  Run `shellcheck` on all shell files in `./_bin/`'
+	@echo '   make serve                         Run the Books API application'
+	@echo '   make seed-data                     Seed the database via the Books API'
+	@echo '   make clean                         Forcefully remove all generated artifacts (e.g. Terraform state files)'
+	@echo '   make vet                           Run `go vet` over source tree'
+	@echo '   make shellcheck                    Run `shellcheck` on all shell files in `./_bin/`'
 	@echo 'Terraform-specific Targets:'
-	@echo '   make start-postgres-container    Start PostgreSQL Docker containers.'
-	@echo '   make stop-postgres-container     Stop PostgreSQL Docker containers.'
-	@echo '   make initialize-database         Initialize the database, schema, roles and grants in the PostgreSQL instances'
-	@echo '   make teardown-database           Teardown the database, schema, roles and grants in the PostgreSQL instances'
+	@echo '   make install-terraform-provider    Install `terraform-provider-books` into Terraform plugins directory'
+	@echo '   make apply-books-workspace         Apply the workspace that uses `terraform-provider-books`'
+	@echo '   make start-postgres-container      Start PostgreSQL Docker containers'
+	@echo '   make stop-postgres-container       Stop PostgreSQL Docker containers'
+	@echo '   make initialize-database           Initialize the database, schema, roles and grants in the PostgreSQL instances'
+	@echo '   make teardown-database             Teardown the database, schema, roles and grants in the PostgreSQL instances'
 	@echo 'PostgreSQL-specific Targets:'
-	@echo '   make migrations-up               Run PostgreSQL migrations for Books database'
-	@echo '   make start-postgres              Starts a PostgreSQL database running in a Docker container and set up users'
-	@echo '   make stop-postgres               Stops the PostgreSQL database running in a Docker container'
-	@echo '   make restart-postgres            Stops the PostgreSQL database (if running) and starts a fresh Docker container'
-	@echo '   make clear-database              Deletes data from all existing tables'
-	@echo '   make require-postgres            Determine if PostgreSQL database is running; fail if not'
-	@echo '   make psql                        Connects to currently running PostgreSQL DB via `psql` as app user'
-	@echo '   make psql-admin                  Connects to currently running PostgreSQL DB via `psql` as admin user'
-	@echo '   make psql-superuser              Connects to currently running PostgreSQL DB via `psql` as superuser'
+	@echo '   make migrations-up                 Run PostgreSQL migrations for Books database'
+	@echo '   make start-postgres                Starts a PostgreSQL database running in a Docker container and set up users'
+	@echo '   make stop-postgres                 Stops the PostgreSQL database running in a Docker container'
+	@echo '   make restart-postgres              Stops the PostgreSQL database (if running) and starts a fresh Docker container'
+	@echo '   make clear-database                Deletes data from all existing tables'
+	@echo '   make require-postgres              Determine if PostgreSQL database is running; fail if not'
+	@echo '   make psql                          Connects to currently running PostgreSQL DB via `psql` as app user'
+	@echo '   make psql-admin                    Connects to currently running PostgreSQL DB via `psql` as admin user'
+	@echo '   make psql-superuser                Connects to currently running PostgreSQL DB via `psql` as superuser'
 	@echo ''
 
 ################################################################################
@@ -72,21 +74,32 @@ SERVER_BIND_PORT ?= 7534
 SERVER_BIND_ADDR ?= :$(SERVER_BIND_PORT)
 SEED_BOOKS_ADDR ?= http://localhost:$(SERVER_BIND_PORT)
 
+GOOS ?= $(shell go env GOOS 2> /dev/null || echo 'linux')
+GOARCH ?= $(shell go env GOARCH 2> /dev/null || echo 'amd64')
+INSTALL_TF_PLUGINS_DIR ?= $(HOME)/.terraform.d/plugins
+INSTALL_TF_REGISTRY_NAME ?= tf-registry.invalid/dhermes/books
+INSTALL_TF_VERSION ?= 0.0.1
+INSTALL_TF_OS_ARCH ?= $(GOOS)_$(GOARCH)
+INSTALL_TF_PATH ?= $(INSTALL_TF_PLUGINS_DIR)/$(INSTALL_TF_REGISTRY_NAME)/$(INSTALL_TF_VERSION)/$(INSTALL_TF_OS_ARCH)
+
 ################################################################################
 # Generic Targets
 ################################################################################
 
 .PHONY: serve
 serve:
-	go run ./cmd/server/ --addr $(SERVER_BIND_ADDR) --dsn $(APP_DSN)
+	go run ./cmd/server/ --addr "$(SERVER_BIND_ADDR)" --dsn "$(APP_DSN)"
 
 .PHONY: seed-data
 seed-data:
-	BOOKS_ADDR=$(SEED_BOOKS_ADDR) ./_bin/seed_data.sh
+	BOOKS_ADDR="$(SEED_BOOKS_ADDR)" ./_bin/seed_data.sh
 
 .PHONY: clean
 clean:
 	rm --force \
+	  _terraform/workspaces/books/.terraform.lock.hcl \
+	  _terraform/workspaces/books/terraform.tfstate \
+	  _terraform/workspaces/books/terraform.tfstate.backup \
 	  _terraform/workspaces/database/.terraform.lock.hcl \
 	  _terraform/workspaces/database/terraform.tfstate \
 	  _terraform/workspaces/database/terraform.tfstate.backup \
@@ -94,6 +107,7 @@ clean:
 	  _terraform/workspaces/docker/terraform.tfstate \
 	  _terraform/workspaces/docker/terraform.tfstate.backup
 	rm --force --recursive \
+	  _terraform/workspaces/books/.terraform/ \
 	  _terraform/workspaces/database/.terraform/ \
 	  _terraform/workspaces/docker/.terraform/
 	docker rm --force \
@@ -111,6 +125,22 @@ shellcheck: _require-shellcheck
 ################################################################################
 # Terraform-specific Targets
 ################################################################################
+
+.PHONY: install-terraform-provider
+install-terraform-provider:
+	@mkdir --parents "$(INSTALL_TF_PATH)"
+	CGO_ENABLED=0 go build \
+	  -ldflags="-s -w" \
+	  -trimpath \
+	  -installsuffix static \
+	  -o "$(INSTALL_TF_PATH)/terraform-provider-books_v$(INSTALL_TF_VERSION)" \
+	  ./cmd/provider/
+
+.PHONY: apply-books-workspace
+apply-books-workspace:
+	@cd _terraform/workspaces/books/ && \
+	  terraform init && \
+	  terraform apply --auto-approve
 
 .PHONY: start-postgres-container
 start-postgres-container:
@@ -142,15 +172,15 @@ teardown-database:
 
 .PHONY: migrations-up
 migrations-up:
-	@PGPASSWORD=$(DB_ADMIN_PASSWORD) go run ./cmd/migrations-up/ \
+	@PGPASSWORD="$(DB_ADMIN_PASSWORD)" go run ./cmd/migrations-up/ \
 	  --dev \
-	  --metadata-table $(DB_METADATA_TABLE) \
+	  --metadata-table "$(DB_METADATA_TABLE)" \
 	  postgres \
-	  --dbname $(DB_NAME) \
+	  --dbname "$(DB_NAME)" \
 	  --driver-name pgx \
-	  --port $(DB_PORT) \
-	  --schema $(DB_SCHEMA) \
-	  --username $(DB_ADMIN_USER) \
+	  --port "$(DB_PORT)" \
+	  --schema "$(DB_SCHEMA)" \
+	  --username "$(DB_ADMIN_USER)" \
 	  up
 
 .PHONY: start-postgres
@@ -164,13 +194,13 @@ restart-postgres: stop-postgres start-postgres
 
 .PHONY: clear-database
 clear-database: require-postgres
-	@DB_FULL_DSN=$(ADMIN_DSN) ./_bin/clear_database.sh
+	@DB_FULL_DSN="$(ADMIN_DSN)" ./_bin/clear_database.sh
 
 .PHONY: require-postgres
 require-postgres:
-	@DB_HOST=$(DB_HOST) \
-	  DB_PORT=$(DB_PORT) \
-	  DB_FULL_DSN=$(ADMIN_DSN) \
+	@DB_HOST="$(DB_HOST)" \
+	  DB_PORT="$(DB_PORT)" \
+	  DB_FULL_DSN="$(ADMIN_DSN)" \
 	  ./_bin/require_postgres.sh
 
 .PHONY: psql

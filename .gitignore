@@ -1,7 +1,13 @@
+/_terraform/workspaces/books/.terraform.lock.hcl
+/_terraform/workspaces/books/.terraform/
+/_terraform/workspaces/books/terraform.tfstate
+/_terraform/workspaces/books/terraform.tfstate.backup
+
 /_terraform/workspaces/database/.terraform.lock.hcl
 /_terraform/workspaces/database/.terraform/
 /_terraform/workspaces/database/terraform.tfstate
 /_terraform/workspaces/database/terraform.tfstate.backup
+
 /_terraform/workspaces/docker/.terraform.lock.hcl
 /_terraform/workspaces/docker/.terraform/
 /_terraform/workspaces/docker/terraform.tfstate

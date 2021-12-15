@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 // NOTE: Ensure that
@@ -95,7 +96,7 @@ func (hc *HTTPClient) AddAuthor(ctx context.Context, a Author) (*AddAuthorRespon
 
 // GetAuthor gets an author currently stored in the books service by ID.
 func (hc *HTTPClient) GetAuthor(ctx context.Context, gar GetAuthorRequest) (*Author, error) {
-	url := fmt.Sprintf("%s/v1alpha1/authors/%d", hc.Addr, gar.AuthorID)
+	url := fmt.Sprintf("%s/v1alpha1/authors/%s", hc.Addr, url.PathEscape(gar.AuthorID.String()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -198,7 +199,7 @@ func (hc *HTTPClient) AddBook(ctx context.Context, b Book) (*AddBookResponse, er
 
 // GetBooks gets all books currently stored in the books service for a given author.
 func (hc *HTTPClient) GetBooks(ctx context.Context, gbr GetBooksRequest) (*GetBooksResponse, error) {
-	url := fmt.Sprintf("%s/v1alpha1/books/%d", hc.Addr, gbr.AuthorID)
+	url := fmt.Sprintf("%s/v1alpha1/books/%s", hc.Addr, url.PathEscape(gbr.AuthorID.String()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
