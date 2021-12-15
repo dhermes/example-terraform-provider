@@ -19,4 +19,7 @@ package tools
 
 import (
 	_ "honnef.co/go/tools/cmd/staticcheck"
+
+	// Temporary
+	_ "github.com/google/uuid"
 )

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/dhermes/golembic v0.0.0-20211030045149-ad38e08f2757
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.0
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/spf13/cobra v1.3.0
