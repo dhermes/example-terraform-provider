@@ -21,5 +21,6 @@ import (
 	_ "honnef.co/go/tools/cmd/staticcheck"
 
 	// Temporary
+	_ "github.com/dhermes/golembic/command"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
