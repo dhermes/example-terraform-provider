@@ -19,6 +19,10 @@ import (
 )
 
 // Client is an abstraction for the Books API.
+//
+// The books service helps to build a catalog of books along with managing the
+// authors of those books. Once the catalog is populated, the authors can be
+// listed and books can be queried by author.
 type Client interface {
 	AddAuthor(context.Context, Author) (*AddAuthorResponse, error)
 	GetAuthors(context.Context, Empty) (*GetAuthorsResponse, error)

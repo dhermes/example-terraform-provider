@@ -15,8 +15,12 @@
 package booksclient
 
 import (
+	"bytes"
 	"context"
-	"errors"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 )
 
 // NOTE: Ensure that
@@ -31,18 +35,150 @@ type HTTPClient struct {
 	Addr string
 }
 
-func (*HTTPClient) AddAuthor(_ context.Context, _ Author) (*AddAuthorResponse, error) {
-	return nil, errors.New("not implemented: add author")
+// RawClient returns a standard libary HTTP client associated with this client.
+//
+// NOTE: For now this is just a stub wrapper around `http.DefaultClient` but
+//       it's provided here to make the code easier to test at a later date.
+func (HTTPClient) RawClient() *http.Client {
+	return http.DefaultClient
 }
 
-func (*HTTPClient) GetAuthors(_ context.Context, _ Empty) (*GetAuthorsResponse, error) {
-	return nil, errors.New("not implemented: get authors")
+// AddAuthor adds a new author to be stored in the books service.
+func (hc *HTTPClient) AddAuthor(ctx context.Context, a Author) (*AddAuthorResponse, error) {
+	url := fmt.Sprintf("%s/v1alpha1/author", hc.Addr)
+	asJSON, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(asJSON))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to add author (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response AddAuthorResponse
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (*HTTPClient) AddBook(_ context.Context, _ Book) (*AddBookResponse, error) {
-	return nil, errors.New("not implemented: add book")
+// GetAuthors gets all authors currently stored in the books service.
+func (hc *HTTPClient) GetAuthors(ctx context.Context, _ Empty) (*GetAuthorsResponse, error) {
+	url := fmt.Sprintf("%s/v1alpha1/authors", hc.Addr)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to get authors (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response GetAuthorsResponse
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
-func (*HTTPClient) GetBooks(_ context.Context, _ GetBooksRequest) (*GetBooksResponse, error) {
-	return nil, errors.New("not implemented: get books")
+// AddBook adds a new book to be stored in the books service.
+//
+// Before adding a book, a valid author must be created via `AddAuthor()`.
+func (hc *HTTPClient) AddBook(ctx context.Context, b Book) (*AddBookResponse, error) {
+	url := fmt.Sprintf("%s/v1alpha1/book", hc.Addr)
+	asJSON, err := json.Marshal(b)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(asJSON))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to add book (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response AddBookResponse
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetBooks gets all books currently stored in the books service for a given author.
+func (hc *HTTPClient) GetBooks(ctx context.Context, gbr GetBooksRequest) (*GetBooksResponse, error) {
+	url := fmt.Sprintf("%s/v1alpha1/books/%d", hc.Addr, gbr.AuthorID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to get books (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response GetBooksResponse
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
