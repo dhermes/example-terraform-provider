@@ -15,14 +15,20 @@
 package books
 
 import (
+	"context"
+	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 )
 
 // dataSourceAuthor returns the `author` data source in the Terraform provider
 // for the Books API.
 func dataSourceAuthor() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: nil, // TODO
+		ReadContext: dataSourceAuthorRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -38,4 +44,49 @@ func dataSourceAuthor() *schema.Resource {
 			},
 		},
 	}
+}
+
+func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// meta: expected to be the output of `providerConfigure()`
+	c, ok := meta.(booksclient.Client)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "No Books API client available",
+			Detail:   "Expected provider configure function to return a Books API client",
+		})
+		return diags
+	}
+
+	idStr, ok := d.Get("id").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author ID",
+			Detail:   "Invalid ID parameter type",
+		})
+		return diags
+	}
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author ID",
+			Detail:   "Invalid ID parameter value",
+		})
+		return diags
+	}
+
+	gar := booksclient.GetAuthorRequest{AuthorID: id}
+	a, err := c.GetAuthor(ctx, gar)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.Set("first_name", a.FirstName)
+	d.Set("last_name", a.LastName)
+	d.SetId(idStr)
+	return diags
 }

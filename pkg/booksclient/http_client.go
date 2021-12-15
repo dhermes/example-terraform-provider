@@ -93,6 +93,38 @@ func (hc *HTTPClient) AddAuthor(ctx context.Context, a Author) (*AddAuthorRespon
 	return &response, nil
 }
 
+// GetAuthor gets an author currently stored in the books service by ID.
+func (hc *HTTPClient) GetAuthor(ctx context.Context, gar GetAuthorRequest) (*Author, error) {
+	url := fmt.Sprintf("%s/v1alpha1/authors/%d", hc.Addr, gar.AuthorID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to get author (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response Author
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 // GetAuthors gets all authors currently stored in the books service.
 func (hc *HTTPClient) GetAuthors(ctx context.Context, _ Empty) (*GetAuthorsResponse, error) {
 	url := fmt.Sprintf("%s/v1alpha1/authors", hc.Addr)

@@ -47,9 +47,7 @@ func Provider() *schema.Provider {
 	}
 }
 
-func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
+func providerConfigure(_ context.Context, d *schema.ResourceData) (meta interface{}, diags diag.Diagnostics) {
 	addr, ok := d.Get("addr").(string)
 	if addr == "" || !ok {
 		diags = append(diags, diag.Diagnostic{
@@ -57,7 +55,7 @@ func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, 
 			Summary:  "Unable to create Books API client",
 			Detail:   "Unable to determine address for Books API",
 		})
-		return nil, diags
+		return
 	}
 
 	_, err := url.Parse(addr)
@@ -67,7 +65,7 @@ func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, 
 			Summary:  "Unable to create Books API client",
 			Detail:   "Failed to parse Books API base address as a URL",
 		})
-		return nil, diags
+		return
 	}
 
 	c, err := booksclient.NewHTTPClient(booksclient.OptAddr(addr))
@@ -77,8 +75,9 @@ func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, 
 			Summary:  "Unable to create Books API client",
 			Detail:   "Unable to create Books API client (TODO, more wording? Use err?)",
 		})
-		return nil, diags
+		return
 	}
 
-	return c, diags
+	meta = c
+	return
 }

@@ -20,7 +20,13 @@ type AddAuthorResponse struct {
 	AuthorID uint64 `json:"author_id,string"`
 }
 
-// GetAuthorsResponse is the response for an authors query.
+// GetAuthorRequest is the request for a get author query.
+type GetAuthorRequest struct {
+	// AuthorID is the ID of the author being queried.
+	AuthorID uint64 `json:"author_id,string"`
+}
+
+// GetAuthorsResponse is the response for a list authors query.
 type GetAuthorsResponse struct {
 	// Authors is the sequence of retrieved authors.
 	Authors []Author `json:"authors"`

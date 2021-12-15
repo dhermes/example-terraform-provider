@@ -25,6 +25,7 @@ import (
 // listed and books can be queried by author.
 type Client interface {
 	AddAuthor(context.Context, Author) (*AddAuthorResponse, error)
+	GetAuthor(context.Context, GetAuthorRequest) (*Author, error)
 	GetAuthors(context.Context, Empty) (*GetAuthorsResponse, error)
 	AddBook(context.Context, Book) (*AddBookResponse, error)
 	GetBooks(context.Context, GetBooksRequest) (*GetBooksResponse, error)
