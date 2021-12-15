@@ -19,7 +19,7 @@ import (
 )
 
 // AllMigrations returns a sequence of migrations.
-func AllMigrations() (*golembic.Migrations, error) {
+func AllMigrations(_, _ string) (*golembic.Migrations, error) {
 	root, err := golembic.NewMigration(
 		golembic.OptRevision("332b84ad0543"),
 		golembic.OptDescription("Create authors table"),

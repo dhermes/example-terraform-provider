@@ -23,3 +23,7 @@ output "app_role" {
 output "db_name" {
   value = postgresql_database.db.name
 }
+
+output "schema" {
+  value = postgresql_schema.application.name
+}

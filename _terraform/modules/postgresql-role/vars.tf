@@ -21,3 +21,8 @@ variable "password" {
   type        = string
   description = "The password to use for the newly created user"
 }
+
+variable "schema" {
+  type        = string
+  description = "The name of the schema the application will use"
+}

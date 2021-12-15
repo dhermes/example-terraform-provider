@@ -12,11 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package main
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"fmt"
+	"os"
+
+	"github.com/dhermes/golembic/command"
+	_ "github.com/jackc/pgx/v4/stdlib"
+
+	"github.com/dhermes/example-terraform-provider/pkg/sqlmigrations"
 )
+
+// NOTE: Ensure that
+//       * `sqlmigrations.AllMigrations` satisfies `command.RegisterMigrations`.
+var (
+	_ command.RegisterMigrations = sqlmigrations.AllMigrations
+)
+
+func run() error {
+	cmd, err := command.MakeRootCommand(sqlmigrations.AllMigrations)
+	if err != nil {
+		return err
+	}
+
+	return cmd.Execute()
+}
+
+func main() {
+	err := run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}

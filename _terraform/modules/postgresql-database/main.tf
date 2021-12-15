@@ -17,6 +17,7 @@ module "admin_role" {
 
   username = "${var.db_name}_admin"
   password = var.admin_password
+  schema   = var.schema
 }
 
 resource "postgresql_database" "db" {
@@ -35,10 +36,18 @@ module "app_role" {
 
   username = "${var.db_name}_app"
   password = var.app_password
+  schema   = var.schema
 }
 
 resource "postgresql_extension" "pgcrypto" {
   name     = "pgcrypto"
   schema   = "public"
   database = postgresql_database.db.name
+}
+
+resource "postgresql_schema" "application" {
+  name         = var.schema
+  owner        = module.admin_role.role_name
+  database     = postgresql_database.db.name
+  drop_cascade = true # WARNING!! This is dangerous to do
 }

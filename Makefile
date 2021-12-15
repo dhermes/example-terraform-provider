@@ -17,6 +17,7 @@ help:
 	@echo 'Makefile for `example-terraform-provider` project'
 	@echo ''
 	@echo 'Usage:'
+	@echo '   make clean                       Forcefully remove all generated artifacts (e.g. Terraform state files)'
 	@echo '   make vet                         Run `go vet` over source tree'
 	@echo '   make shellcheck                  Run `shellcheck` on all shell files in `./_bin/`'
 	@echo 'Terraform-specific Targets:'
@@ -25,6 +26,7 @@ help:
 	@echo '   make initialize-database         Initialize the database, schema, roles and grants in the PostgreSQL instances'
 	@echo '   make teardown-database           Teardown the database, schema, roles and grants in the PostgreSQL instances'
 	@echo 'PostgreSQL-specific Targets:'
+	@echo '   make migrations-up               Run PostgreSQL migrations for Books database'
 	@echo '   make start-postgres              Starts a PostgreSQL database running in a Docker container and set up users'
 	@echo '   make stop-postgres               Stops the PostgreSQL database running in a Docker container'
 	@echo '   make restart-postgres            Stops the PostgreSQL database (if running) and starts a fresh Docker container'
@@ -55,10 +57,33 @@ DB_APP_PASSWORD ?= testpassword_app
 DB_ADMIN_USER ?= books_admin
 DB_ADMIN_PASSWORD ?= testpassword_admin
 
+DB_SCHEMA ?= books
+DB_METADATA_TABLE ?= books_migrations
+
 # NOTE: This assumes the `DB_*_PASSWORD` values do not need to be URL encoded.
 SUPERUSER_DSN ?= postgres://$(DB_SUPERUSER_USER):$(DB_SUPERUSER_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_SUPERUSER_NAME)
 APP_DSN ?= postgres://$(DB_APP_USER):$(DB_APP_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
 ADMIN_DSN ?= postgres://$(DB_ADMIN_USER):$(DB_ADMIN_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
+
+################################################################################
+# Generic Targets
+################################################################################
+
+.PHONY: clean
+clean:
+	rm --force \
+	  _terraform/workspaces/database/.terraform.lock.hcl \
+	  _terraform/workspaces/database/terraform.tfstate \
+	  _terraform/workspaces/database/terraform.tfstate.backup \
+	  _terraform/workspaces/docker/.terraform.lock.hcl \
+	  _terraform/workspaces/docker/terraform.tfstate \
+	  _terraform/workspaces/docker/terraform.tfstate.backup
+	rm --force --recursive \
+	  _terraform/workspaces/database/.terraform/ \
+	  _terraform/workspaces/docker/.terraform/
+	docker rm --force \
+	  dev-postgres-books
+	docker network rm dev-network-books || true
 
 .PHONY: vet
 vet:
@@ -100,8 +125,21 @@ teardown-database:
 # PostgreSQL
 ################################################################################
 
+.PHONY: migrations-up
+migrations-up:
+	@PGPASSWORD=$(DB_ADMIN_PASSWORD) go run ./cmd/migrations-up/ \
+	  --dev \
+	  --metadata-table $(DB_METADATA_TABLE) \
+	  postgres \
+	  --dbname $(DB_NAME) \
+	  --driver-name pgx \
+	  --port $(DB_PORT) \
+	  --schema $(DB_SCHEMA) \
+	  --username $(DB_ADMIN_USER) \
+	  up
+
 .PHONY: start-postgres
-start-postgres: start-postgres-container initialize-database
+start-postgres: start-postgres-container require-postgres initialize-database migrations-up
 
 .PHONY: stop-postgres
 stop-postgres: teardown-database stop-postgres-container

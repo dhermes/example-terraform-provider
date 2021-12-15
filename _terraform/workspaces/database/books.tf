@@ -18,6 +18,7 @@ module "books_database" {
   db_name        = "books"
   admin_password = "testpassword_admin"
   app_password   = "testpassword_app"
+  schema         = "books"
 
   providers = {
     postgresql = postgresql.docker
@@ -27,7 +28,7 @@ module "books_database" {
 module "books_grants" {
   source = "../../modules/postgresql-grants"
 
-  schema     = "books"
+  schema     = module.books_database.schema
   db_name    = module.books_database.db_name
   admin_role = module.books_database.admin_role
   app_role   = module.books_database.app_role
