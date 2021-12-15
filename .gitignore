@@ -1,0 +1,8 @@
+/_terraform/workspaces/database/.terraform.lock.hcl
+/_terraform/workspaces/database/.terraform/
+/_terraform/workspaces/database/terraform.tfstate
+/_terraform/workspaces/database/terraform.tfstate.backup
+/_terraform/workspaces/docker/.terraform.lock.hcl
+/_terraform/workspaces/docker/.terraform/
+/_terraform/workspaces/docker/terraform.tfstate
+/_terraform/workspaces/docker/terraform.tfstate.backup

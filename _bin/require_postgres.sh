@@ -20,7 +20,7 @@ set -e
 
 requireEnvVar "DB_HOST"
 requireEnvVar "DB_PORT"
-requireEnvVar "DB_ADMIN_DSN"
+requireEnvVar "DB_FULL_DSN"
 
 ##########################################################
 ## Don't exit until `pg_isready` returns 0 in container ##
@@ -28,7 +28,7 @@ requireEnvVar "DB_ADMIN_DSN"
 
 # NOTE: This is used strictly for the status code to determine readiness.
 pgIsReady() {
-  pg_isready --dbname "${DB_ADMIN_DSN}" > /dev/null 2>&1
+  pg_isready --dbname "${DB_FULL_DSN}" > /dev/null 2>&1
 }
 
 exists "pg_isready"
