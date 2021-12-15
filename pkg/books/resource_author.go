@@ -119,10 +119,24 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return nil
+func resourceAuthorUpdate(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
+	diags := []diag.Diagnostic{
+		{
+			Severity: diag.Error,
+			Summary:  "Author cannot be changed after creation",
+			Detail:   "Unsupported operation",
+		},
+	}
+	return diags
 }
 
-func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return nil
+func resourceAuthorDelete(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
+	diags := []diag.Diagnostic{
+		{
+			Severity: diag.Error,
+			Summary:  "Author cannot be changed after creation",
+			Detail:   "Unsupported operation",
+		},
+	}
+	return diags
 }
