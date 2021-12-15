@@ -13,10 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-requireEnvVar () {
-  ENV_VAR="${1}"
-  if [ -z "$(eval "echo \$${ENV_VAR}")" ]; then
-    echo "${ENV_VAR} environment variable should be set by the caller."
-    exit 1
-  fi
-}
+set -e
+
+. "$(dirname "${0}")/exists.sh"
+. "$(dirname "${0}")/require_env_var.sh"
+
+requireEnvVar "DB_FULL_DSN"
+exists "psql"
+
+psql \
+  --dbname "${DB_FULL_DSN}" \
+  --command 'DELETE FROM authors'
+psql \
+  --dbname "${DB_FULL_DSN}" \
+  --command 'DELETE FROM books'

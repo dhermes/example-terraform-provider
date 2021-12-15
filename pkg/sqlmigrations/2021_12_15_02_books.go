@@ -33,7 +33,7 @@ CREATE TABLE books (
   id UUID NOT NULL,
   author_id UUID NOT NULL,
   title TEXT NOT NULL,
-  publish_date DATE NOT NULL
+  publish_date TIMESTAMP WITH TIME ZONE NOT NULL
 )
 `
 	booksPK = `
@@ -44,6 +44,14 @@ ADD CONSTRAINT
 PRIMARY KEY
   (id)
 `
+	booksUniqueConstraint = `
+ALTER TABLE
+  books
+ADD CONSTRAINT
+  uq_books_author_id_title
+UNIQUE
+  (author_id, title)
+`
 )
 
 // AddBooksTable runs SQL statements required for adding the `books` table.
@@ -53,5 +61,10 @@ func AddBooksTable(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	return applySQL(ctx, tx, booksPK)
+	err = applySQL(ctx, tx, booksPK)
+	if err != nil {
+		return err
+	}
+
+	return applySQL(ctx, tx, booksUniqueConstraint)
 }

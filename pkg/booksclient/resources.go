@@ -16,6 +16,8 @@ package booksclient
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Empty is an empty struct used for RPC inputs / outputs.
@@ -30,7 +32,7 @@ type Author struct {
 	// LastName is the surname of the author.
 	LastName string `json:"last_name"`
 	// ID is the database identifier, if the author has already been created.
-	ID uint64 `json:"id,string,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// BookCount is the number of books by the author in the books service.
 	BookCount uint32 `json:"book_count,omitempty"`
 }
@@ -42,9 +44,9 @@ type Book struct {
 	// Title is the book title.
 	Title string `json:"title"`
 	// AuthorID is the ID of the author of the book.
-	AuthorID uint64 `json:"author_id,string"`
+	AuthorID uuid.UUID `json:"author_id"`
 	// PublishDate is the date the book was published.
 	PublishDate *time.Time `json:"publish_date,omitempty"`
 	// ID is the database identifier, if the book has already been created.
-	ID uint64 `json:"id,string,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 }

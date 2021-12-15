@@ -15,8 +15,7 @@
 package books
 
 import (
-	"strconv"
-
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
@@ -39,8 +38,8 @@ func getClientFromMeta(meta interface{}) (booksclient.Client, diag.Diagnostics) 
 	return nil, diags
 }
 
-func idFromString(idStr string) (uint64, diag.Diagnostics) {
-	id, err := strconv.ParseUint(idStr, 10, 64)
+func idFromString(idStr string) (uuid.UUID, diag.Diagnostics) {
+	id, err := uuid.Parse(idStr)
 	if err == nil {
 		return id, nil
 	}
@@ -52,5 +51,5 @@ func idFromString(idStr string) (uint64, diag.Diagnostics) {
 			Detail:   "Invalid ID parameter value",
 		},
 	}
-	return 0, diags
+	return uuid.Nil, diags
 }

@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/dhermes/example-terraform-provider/pkg/model"
 )
 
 // NOTE: Ensure that
@@ -43,11 +47,27 @@ func addBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println("TODO: addBook(", abr, ")")
+	ctx := req.Context()
+	pool := model.GetPool(ctx)
+	b := model.Book{AuthorID: abr.AuthorID, Title: abr.Title, PublishDate: abr.PublishDate}
+	id, err := model.InsertBook(ctx, pool, b)
+	if err != nil {
+		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"error": "failed to insert book"}`+"\n")
+		return
+	}
+
+	response := addBookResponse{BookID: id.String()}
+	serializeJSONResponse(w, response)
 }
 
 type addBookRequest struct {
 	Title       string     `json:"title"`
-	AuthorID    uint64     `json:"author_id,string"`
+	AuthorID    uuid.UUID  `json:"author_id"`
 	PublishDate *time.Time `json:"publish_date"`
+}
+
+type addBookResponse struct {
+	BookID string `json:"book_id"`
 }

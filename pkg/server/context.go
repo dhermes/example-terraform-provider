@@ -14,22 +14,26 @@
 
 package server
 
-// Config provides the core set of (CLI) inputs needed to run the Books
-// API server.
-type Config struct {
-	Addr string
-	DSN  string
-}
+import (
+	"context"
+	"database/sql"
 
-// NewConfig returns a new `Config` with all relevant defaults provided and
-// options for overriding.
-func NewConfig(opts ...Option) (Config, error) {
-	c := Config{}
-	for _, opt := range opts {
-		err := opt(&c)
-		if err != nil {
-			return Config{}, err
-		}
+	"github.com/dhermes/example-terraform-provider/pkg/model"
+)
+
+// Context uses `context.WithValue()` to attach configurated values that will
+// be constant within the scope of the application.
+func Context(ctx context.Context, c Config) (context.Context, error) {
+	pool, err := sql.Open("pgx", c.DSN)
+	if err != nil {
+		return nil, err
 	}
-	return c, nil
+
+	err = pool.PingContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = model.WithPool(ctx, pool)
+	return ctx, nil
 }

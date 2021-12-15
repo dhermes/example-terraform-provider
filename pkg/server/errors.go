@@ -62,3 +62,21 @@ func invalidJSONBody(w http.ResponseWriter, req *http.Request, v interface{}) bo
 	fmt.Fprintf(w, `{"error": "invalid request body"}`+"\n")
 	return true
 }
+
+func serializeJSONResponse(w http.ResponseWriter, v interface{}) bool {
+	// NOTE: It'd be nice to just do `json.NewEncoder(w).Encode(v)`, but we
+	//       can't do this because we need to write the status code header before
+	//       writing the response body.
+	responseBody, err := json.Marshal(v)
+	if err != nil {
+		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"error": "could not serialize response"}`+"\n")
+		return false
+	}
+
+	w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, string(responseBody)+"\n")
+	return true
+}

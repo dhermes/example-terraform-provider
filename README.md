@@ -9,6 +9,8 @@ $ make  # Or `make help`
 Makefile for `example-terraform-provider` project
 
 Usage:
+   make serve                       Run the Books API application
+   make seed-data                   Seed the database via the Books API
    make clean                       Forcefully remove all generated artifacts (e.g. Terraform state files)
    make vet                         Run `go vet` over source tree
    make shellcheck                  Run `shellcheck` on all shell files in `./_bin/`
@@ -22,6 +24,7 @@ PostgreSQL-specific Targets:
    make start-postgres              Starts a PostgreSQL database running in a Docker container and set up users
    make stop-postgres               Stops the PostgreSQL database running in a Docker container
    make restart-postgres            Stops the PostgreSQL database (if running) and starts a fresh Docker container
+   make clear-database              Deletes data from all existing tables
    make require-postgres            Determine if PostgreSQL database is running; fail if not
    make psql                        Connects to currently running PostgreSQL DB via `psql` as app user
    make psql-admin                  Connects to currently running PostgreSQL DB via `psql` as admin user

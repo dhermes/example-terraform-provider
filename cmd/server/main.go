@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/spf13/cobra"
 
 	"github.com/dhermes/example-terraform-provider/pkg/server"
@@ -37,6 +38,11 @@ func run() error {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(_ *cobra.Command, _ []string) error {
+			ctx, err := server.Context(ctx, c)
+			if err != nil {
+				return err
+			}
+
 			return server.Run(ctx, c)
 		},
 	}
@@ -47,8 +53,14 @@ func run() error {
 		c.Addr,
 		"The bind address to use for the server, e.g. ':7534'",
 	)
+	cmd.PersistentFlags().StringVar(
+		&c.DSN,
+		"dsn",
+		c.DSN,
+		"The DSN to use for the database, e.g. 'postgres://books_app:testpassword_app@127.0.0.1:22411/books'",
+	)
 
-	required := []string{"addr"}
+	required := []string{"addr", "dsn"}
 	for _, name := range required {
 		err := cobra.MarkFlagRequired(cmd.PersistentFlags(), name)
 		if err != nil {

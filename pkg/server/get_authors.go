@@ -17,6 +17,8 @@ package server
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/dhermes/example-terraform-provider/pkg/model"
 )
 
 // NOTE: Ensure that
@@ -37,5 +39,20 @@ func getAuthors(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println("TODO: getAuthors()")
+	ctx := req.Context()
+	pool := model.GetPool(ctx)
+	authorsDB, err := model.GetAllAuthors(ctx, pool)
+	if err != nil {
+		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"error": "failed to get all authors"}`+"\n")
+		return
+	}
+
+	authors := make([]authorResponse, len(authorsDB))
+	for i, a := range authorsDB {
+		authors[i] = dbAuthorToResult(&a)
+	}
+	response := authorsResponse{Authors: authors}
+	serializeJSONResponse(w, response)
 }

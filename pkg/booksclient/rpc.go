@@ -14,16 +14,20 @@
 
 package booksclient
 
+import (
+	"github.com/google/uuid"
+)
+
 // AddAuthorResponse is the response after an author was added.
 type AddAuthorResponse struct {
 	// AuthorID is the ID of the newly created author.
-	AuthorID uint64 `json:"author_id,string"`
+	AuthorID uuid.UUID `json:"author_id"`
 }
 
 // GetAuthorRequest is the request for a get author query.
 type GetAuthorRequest struct {
 	// AuthorID is the ID of the author being queried.
-	AuthorID uint64 `json:"author_id,string"`
+	AuthorID uuid.UUID `json:"author_id"`
 }
 
 // GetAuthorsResponse is the response for a list authors query.
@@ -35,13 +39,13 @@ type GetAuthorsResponse struct {
 // AddBookResponse is the response after a book was added.
 type AddBookResponse struct {
 	// BookID is the ID of the newly created book.
-	BookID uint64 `json:"book_id,string"`
+	BookID uuid.UUID `json:"book_id"`
 }
 
 // GetBooksRequest is a request for a books-by-author query.
 type GetBooksRequest struct {
 	// AuthorID is the ID of the author of the books.
-	AuthorID uint64 `json:"author_id,string"`
+	AuthorID uuid.UUID `json:"author_id"`
 }
 
 // GetBooksResponse is the response for a books query.

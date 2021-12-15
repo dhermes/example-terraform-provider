@@ -12,24 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package model
 
-// Config provides the core set of (CLI) inputs needed to run the Books
-// API server.
-type Config struct {
-	Addr string
-	DSN  string
+import (
+	"context"
+	"database/sql"
+)
+
+type poolKey struct{}
+
+// WithPool adds a standard library database connection pool to a context.
+func WithPool(ctx context.Context, pool *sql.DB) context.Context {
+	return context.WithValue(ctx, poolKey{}, pool)
 }
 
-// NewConfig returns a new `Config` with all relevant defaults provided and
-// options for overriding.
-func NewConfig(opts ...Option) (Config, error) {
-	c := Config{}
-	for _, opt := range opts {
-		err := opt(&c)
-		if err != nil {
-			return Config{}, err
-		}
-	}
-	return c, nil
+// GetPool gets a standard library database connection pool from a context.
+func GetPool(ctx context.Context) *sql.DB {
+	raw := ctx.Value(poolKey{})
+	pool, _ := raw.(*sql.DB)
+	return pool // Will be `nil` if type assertion fails
 }

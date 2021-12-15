@@ -17,8 +17,12 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/dhermes/example-terraform-provider/pkg/model"
 )
 
 // NOTE: Ensure that
@@ -40,7 +44,7 @@ func getBooks(w http.ResponseWriter, req *http.Request) {
 	}
 
 	suffix := strings.TrimPrefix(req.URL.Path, "/v1alpha1/books/")
-	id, err := strconv.ParseUint(suffix, 10, 64)
+	id, err := uuid.Parse(suffix)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		w.WriteHeader(http.StatusBadRequest)
@@ -48,5 +52,45 @@ func getBooks(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println("TODO: getBooks(", id, ")")
+	ctx := req.Context()
+	pool := model.GetPool(ctx)
+	booksDB, err := model.GetAllBooksByAuthor(ctx, pool, id)
+	if err != nil {
+		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"error": "failed to get all books by author"}`+"\n")
+		return
+	}
+
+	books := make([]bookResponse, len(booksDB))
+	for i, b := range booksDB {
+		books[i] = dbBookToResult(&b)
+	}
+	response := booksResponse{Books: books}
+	serializeJSONResponse(w, response)
+
+}
+
+type bookResponse struct {
+	ID          string     `json:"id,omitempty"`
+	AuthorID    string     `json:"author_id"`
+	Title       string     `json:"title"`
+	PublishDate *time.Time `json:"publish_date,omitempty"`
+}
+
+type booksResponse struct {
+	Books []bookResponse `json:"books"`
+}
+
+func dbBookToResult(b *model.Book) bookResponse {
+	br := bookResponse{
+		ID:       b.ID.String(),
+		AuthorID: b.AuthorID.String(),
+		Title:    b.Title,
+	}
+	if b.PublishDate != nil {
+		t := b.PublishDate.UTC()
+		br.PublishDate = &t
+	}
+	return br
 }

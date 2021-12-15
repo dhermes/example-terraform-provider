@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package model
 
-// Config provides the core set of (CLI) inputs needed to run the Books
-// API server.
-type Config struct {
-	Addr string
-	DSN  string
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// Author represents a row in the `authors` table.
+type Author struct {
+	ID        uuid.UUID `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
 }
 
-// NewConfig returns a new `Config` with all relevant defaults provided and
-// options for overriding.
-func NewConfig(opts ...Option) (Config, error) {
-	c := Config{}
-	for _, opt := range opts {
-		err := opt(&c)
-		if err != nil {
-			return Config{}, err
-		}
-	}
-	return c, nil
+// Book represents a row in the `rows` table.
+type Book struct {
+	ID          uuid.UUID  `db:"id"`
+	AuthorID    uuid.UUID  `db:"author_id"`
+	Title       string     `db:"title"`
+	PublishDate *time.Time `db:"publish_date"`
 }

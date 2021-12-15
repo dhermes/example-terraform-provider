@@ -17,6 +17,8 @@ help:
 	@echo 'Makefile for `example-terraform-provider` project'
 	@echo ''
 	@echo 'Usage:'
+	@echo '   make serve                       Run the Books API application'
+	@echo '   make seed-data                   Seed the database via the Books API'
 	@echo '   make clean                       Forcefully remove all generated artifacts (e.g. Terraform state files)'
 	@echo '   make vet                         Run `go vet` over source tree'
 	@echo '   make shellcheck                  Run `shellcheck` on all shell files in `./_bin/`'
@@ -30,6 +32,7 @@ help:
 	@echo '   make start-postgres              Starts a PostgreSQL database running in a Docker container and set up users'
 	@echo '   make stop-postgres               Stops the PostgreSQL database running in a Docker container'
 	@echo '   make restart-postgres            Stops the PostgreSQL database (if running) and starts a fresh Docker container'
+	@echo '   make clear-database              Deletes data from all existing tables'
 	@echo '   make require-postgres            Determine if PostgreSQL database is running; fail if not'
 	@echo '   make psql                        Connects to currently running PostgreSQL DB via `psql` as app user'
 	@echo '   make psql-admin                  Connects to currently running PostgreSQL DB via `psql` as admin user'
@@ -65,9 +68,21 @@ SUPERUSER_DSN ?= postgres://$(DB_SUPERUSER_USER):$(DB_SUPERUSER_PASSWORD)@$(DB_H
 APP_DSN ?= postgres://$(DB_APP_USER):$(DB_APP_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
 ADMIN_DSN ?= postgres://$(DB_ADMIN_USER):$(DB_ADMIN_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
 
+SERVER_BIND_PORT ?= 7534
+SERVER_BIND_ADDR ?= :$(SERVER_BIND_PORT)
+SEED_BOOKS_ADDR ?= http://localhost:$(SERVER_BIND_PORT)
+
 ################################################################################
 # Generic Targets
 ################################################################################
+
+.PHONY: serve
+serve:
+	go run ./cmd/server/ --addr $(SERVER_BIND_ADDR) --dsn $(APP_DSN)
+
+.PHONY: seed-data
+seed-data:
+	BOOKS_ADDR=$(SEED_BOOKS_ADDR) ./_bin/seed_data.sh
 
 .PHONY: clean
 clean:
@@ -146,6 +161,10 @@ stop-postgres: teardown-database stop-postgres-container
 
 .PHONY: restart-postgres
 restart-postgres: stop-postgres start-postgres
+
+.PHONY: clear-database
+clear-database: require-postgres
+	@DB_FULL_DSN=$(ADMIN_DSN) ./_bin/clear_database.sh
 
 .PHONY: require-postgres
 require-postgres:

@@ -43,6 +43,14 @@ ADD CONSTRAINT
 PRIMARY KEY
   (id)
 `
+	authorsUniqueConstraint = `
+ALTER TABLE
+  authors
+ADD CONSTRAINT
+  uq_authors_full_name
+UNIQUE
+  (first_name, last_name)
+`
 )
 
 // AddAuthorsTable runs SQL statements required for adding the `authors` table.
@@ -52,5 +60,10 @@ func AddAuthorsTable(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	return applySQL(ctx, tx, authorsPK)
+	err = applySQL(ctx, tx, authorsPK)
+	if err != nil {
+		return err
+	}
+
+	return applySQL(ctx, tx, authorsUniqueConstraint)
 }
