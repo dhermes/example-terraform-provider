@@ -12,11 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
-
-import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
-)
+// Package server implements a basic Books API server.
+package server

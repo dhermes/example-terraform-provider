@@ -12,11 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
+package server
 
-package tools
+// Config provides the core set of (CLI) inputs needed to run the Books
+// API server.
+type Config struct {
+	Addr string
+}
 
-import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
-)
+// NewConfig returns a new `Config` with all relevant defaults provided and
+// options for overriding.
+func NewConfig(opts ...Option) (Config, error) {
+	c := Config{}
+	for _, opt := range opts {
+		err := opt(&c)
+		if err != nil {
+			return Config{}, err
+		}
+	}
+	return c, nil
+}

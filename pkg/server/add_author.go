@@ -12,11 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package server
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"fmt"
+	"net/http"
 )
+
+// NOTE: Ensure that
+//       * `addAuthor` satisfies `handleFunc`.
+var (
+	_ handleFunc = addAuthor
+)
+
+func addAuthor(w http.ResponseWriter, req *http.Request) {
+	if notAllowed(w, req, http.MethodPost) {
+		return
+	}
+	if contentTypeNotJSON(w, req) {
+		return
+	}
+	if req.URL.Path != "/v1alpha1/author" {
+		notFound(w)
+		return
+	}
+
+	var aar addAuthorRequest
+	if invalidJSONBody(w, req, &aar) {
+		return
+	}
+
+	fmt.Println("TODO: addAuthor(", aar, ")")
+}
+
+type addAuthorRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}

@@ -12,11 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package server
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"fmt"
+	"net/http"
 )
+
+// NOTE: Ensure that
+//       * `getAuthors` satisfies `handleFunc`.
+var (
+	_ handleFunc = getAuthor
+)
+
+func getAuthors(w http.ResponseWriter, req *http.Request) {
+	if notAllowed(w, req, http.MethodGet) {
+		return
+	}
+	if contentTypeNotJSON(w, req) {
+		return
+	}
+	if req.URL.Path != "/v1alpha1/authors" {
+		notFound(w)
+		return
+	}
+
+	fmt.Println("TODO: getAuthors()")
+}

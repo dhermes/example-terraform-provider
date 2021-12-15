@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
+package server
 
-package tools
-
-import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+const (
+	// HeaderContentType is the canonicalized header for content type.
+	HeaderContentType = "Content-Type"
+	// ContentTypeApplicationJSON is the content type to use for JSON.
+	ContentTypeApplicationJSON = "application/json"
 )

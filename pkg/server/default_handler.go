@@ -12,11 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package server
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"net/http"
 )
+
+// NOTE: Ensure that
+//       * `defaultHandler` satisfies `handleFunc`.
+var (
+	_ handleFunc = getAuthor
+)
+
+func defaultHandler(w http.ResponseWriter, req *http.Request) {
+	notFound(w)
+}

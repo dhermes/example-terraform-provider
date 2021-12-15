@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package server
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"net/http"
 )
+
+type handleFunc func(http.ResponseWriter, *http.Request)

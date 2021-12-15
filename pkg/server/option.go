@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
+package server
 
-package tools
-
-import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
-)
+// Option represents an initialization helper that can modify a config in-place.
+type Option func(*Config) error
