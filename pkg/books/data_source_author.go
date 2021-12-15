@@ -12,19 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package books
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-
-	"github.com/dhermes/example-terraform-provider/pkg/books"
 )
 
-func main() {
-	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: func() *schema.Provider {
-			return books.Provider()
+// dataSourceAuthor returns the `author` data source in the Terraform provider
+// for the Books API.
+func dataSourceAuthor() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: nil, // TODO
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"first_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
-	})
+	}
 }

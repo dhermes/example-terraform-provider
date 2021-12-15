@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package booksclient
 
-import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+// Option represents an initialization helper that can modify an HTTP client in-place.
+type Option func(*HTTPClient) error
 
-	"github.com/dhermes/example-terraform-provider/pkg/books"
-)
-
-func main() {
-	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: func() *schema.Provider {
-			return books.Provider()
-		},
-	})
+// OptAddr sets the address on an HTTP client.
+func OptAddr(addr string) Option {
+	return func(hc *HTTPClient) error {
+		hc.Addr = addr
+		return nil
+	}
 }

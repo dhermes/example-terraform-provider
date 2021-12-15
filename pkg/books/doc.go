@@ -12,14 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
-
-import (
-	// Pre-emptive imports before usage
-
-	_ "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	_ "github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-)
+// Package books implements the core Books Terraform Provider.
+package books

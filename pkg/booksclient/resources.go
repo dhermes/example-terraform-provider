@@ -14,7 +14,9 @@
 
 package booksclient
 
-import "time"
+import (
+	"time"
+)
 
 // Empty is an empty struct used for RPC inputs / outputs.
 type Empty struct{}

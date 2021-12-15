@@ -35,6 +35,19 @@ type HTTPClient struct {
 	Addr string
 }
 
+// NewHTTPClient returns a new `HTTPClient` with all relevant defaults provided and
+// options for overriding.
+func NewHTTPClient(opts ...Option) (HTTPClient, error) {
+	hc := HTTPClient{}
+	for _, opt := range opts {
+		err := opt(&hc)
+		if err != nil {
+			return HTTPClient{}, err
+		}
+	}
+	return hc, nil
+}
+
 // RawClient returns a standard libary HTTP client associated with this client.
 //
 // NOTE: For now this is just a stub wrapper around `http.DefaultClient` but
