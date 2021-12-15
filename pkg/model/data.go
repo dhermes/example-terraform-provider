@@ -25,6 +25,10 @@ type Author struct {
 	ID        uuid.UUID `db:"id"`
 	FirstName string    `db:"first_name"`
 	LastName  string    `db:"last_name"`
+
+	// BookCount is not actually in the `authors` table, but can be supplied
+	// by doing a `COUNT(*)` in the `books` table.
+	BookCount uint32 `db:"-"`
 }
 
 // Book represents a row in the `rows` table.

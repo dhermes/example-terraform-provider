@@ -34,7 +34,7 @@ type Author struct {
 	// ID is the database identifier, if the author has already been created.
 	ID uuid.UUID `json:"id,omitempty"`
 	// BookCount is the number of books by the author in the books service.
-	BookCount uint32 `json:"book_count,omitempty"`
+	BookCount uint32 `json:"book_count"`
 }
 
 // Book contains information about a book.

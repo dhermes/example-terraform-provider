@@ -30,7 +30,17 @@ VALUES
 `
 	getAuthorByID = `
 SELECT
-  id, first_name, last_name
+  id,
+  first_name,
+  last_name,
+  (
+    SELECT
+      COUNT(*) AS book_count
+    FROM
+      books
+    WHERE
+      author_id = $1
+  )
 FROM
   authors
 WHERE
@@ -38,9 +48,19 @@ WHERE
 `
 	getAllAuthors = `
 SELECT
-  id, first_name, last_name
+  a.id, a.first_name, a.last_name, COALESCE(b.book_count, 0)
 FROM
-  authors
+  authors AS a
+FULL OUTER JOIN (
+  SELECT
+    author_id, COUNT(*) AS book_count
+  FROM
+    books
+  GROUP BY
+    author_id
+) AS b
+ON
+  a.id = b.author_id
 `
 )
 
@@ -64,7 +84,7 @@ func GetAuthorByID(ctx context.Context, pool *sql.DB, id uuid.UUID) (*Author, er
 	row := pool.QueryRowContext(ctx, getAuthorByID, id)
 
 	a := Author{}
-	err := row.Scan(&a.ID, &a.FirstName, &a.LastName)
+	err := row.Scan(&a.ID, &a.FirstName, &a.LastName, &a.BookCount)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +105,7 @@ func GetAllAuthors(ctx context.Context, pool *sql.DB) ([]Author, error) {
 	authors := []Author{}
 	for rows.Next() {
 		a := Author{}
-		err = rows.Scan(&a.ID, &a.FirstName, &a.LastName)
+		err = rows.Scan(&a.ID, &a.FirstName, &a.LastName, &a.BookCount)
 		if err != nil {
 			return nil, err
 		}

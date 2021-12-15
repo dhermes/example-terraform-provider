@@ -69,7 +69,7 @@ type authorResponse struct {
 	ID        string `json:"id,omitempty"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	BookCount uint32 `json:"book_count,omitempty"`
+	BookCount uint32 `json:"book_count"`
 }
 
 type authorsResponse struct {
@@ -81,6 +81,6 @@ func dbAuthorToResult(a *model.Author) authorResponse {
 		ID:        a.ID.String(),
 		FirstName: a.FirstName,
 		LastName:  a.LastName,
-		// TODO: BookCount
+		BookCount: a.BookCount,
 	}
 }
