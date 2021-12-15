@@ -16,7 +16,6 @@ package books
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -47,16 +46,8 @@ func dataSourceAuthor() *schema.Resource {
 }
 
 func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// meta: expected to be the output of `providerConfigure()`
-	c, ok := meta.(booksclient.Client)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "No Books API client available",
-			Detail:   "Expected provider configure function to return a Books API client",
-		})
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
 		return diags
 	}
 
@@ -69,13 +60,8 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		})
 		return diags
 	}
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author ID",
-			Detail:   "Invalid ID parameter value",
-		})
+	id, diags := idFromString(idStr)
+	if diags != nil {
 		return diags
 	}
 
@@ -85,8 +71,16 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	d.Set("first_name", a.FirstName)
-	d.Set("last_name", a.LastName)
+	err = d.Set("first_name", a.FirstName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("last_name", a.LastName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId(idStr)
 	return diags
 }

@@ -15,17 +15,23 @@
 package books
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 )
 
 // resourceAuthor returns the `author` resource in the Terraform provider for
 // the Books API.
 func resourceAuthor() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: nil, // TODO
-		ReadContext:   nil, // TODO
-		UpdateContext: nil, // TODO
-		DeleteContext: nil, // TODO
+		CreateContext: resourceAuthorCreate,
+		ReadContext:   resourceAuthorRead,
+		UpdateContext: resourceAuthorUpdate,
+		DeleteContext: resourceAuthorDelete,
 		Schema: map[string]*schema.Schema{
 			"first_name": {
 				Type:     schema.TypeString,
@@ -41,7 +47,82 @@ func resourceAuthor() *schema.Resource {
 			},
 		},
 		Importer: &schema.ResourceImporter{
-			// TODO
+			// NOTE: A pure pass through is insufficient if `books_count` gets added.
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
+}
+
+func resourceAuthorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
+	}
+
+	firstName, ok := d.Get("first_name").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author first name",
+			Detail:   "Invalid first name parameter type",
+		})
+		return diags
+	}
+	lastName, ok := d.Get("last_name").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author last name",
+			Detail:   "Invalid last name parameter type",
+		})
+		return diags
+	}
+
+	a := booksclient.Author{FirstName: firstName, LastName: lastName}
+	aar, err := c.AddAuthor(ctx, a)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(fmt.Sprintf("%d", aar.AuthorID))
+	return resourceAuthorRead(ctx, d, meta)
+}
+
+func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
+	}
+
+	idStr := d.Id()
+	id, diags := idFromString(idStr)
+	if diags != nil {
+		return diags
+	}
+
+	gar := booksclient.GetAuthorRequest{AuthorID: id}
+	a, err := c.GetAuthor(ctx, gar)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("first_name", a.FirstName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("last_name", a.LastName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func resourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return nil
+}
+
+func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return nil
 }
