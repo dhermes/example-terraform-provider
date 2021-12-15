@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools
+package sqlmigrations
 
 import (
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	"context"
+	"database/sql"
 )
+
+func applySQL(ctx context.Context, tx *sql.Tx, statement string, args ...interface{}) error {
+	_, err := tx.ExecContext(ctx, statement, args...)
+	return err
+}
