@@ -70,11 +70,7 @@ func providerConfigure(_ context.Context, d *schema.ResourceData) (meta interfac
 
 	c, err := booksclient.NewHTTPClient(booksclient.OptAddr(addr))
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to create Books API client",
-			Detail:   "Unable to create Books API client (TODO, more wording? Use err?)",
-		})
+		diags = diag.FromErr(err)
 		return
 	}
 
