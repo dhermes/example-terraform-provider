@@ -75,6 +75,7 @@ func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error 
 	ra.LastName = &a.LastName
 	bc := int(a.BookCount)
 	ra.BookCount = &bc
+	ra.ID = a.ID
 	return ra.Persist()
 }
 

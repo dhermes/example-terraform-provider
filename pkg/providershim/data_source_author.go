@@ -20,32 +20,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
+	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
+	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
 // dataSourceAuthor returns the `author` data source in the Terraform provider
 // for the Books API.
 func dataSourceAuthor() *schema.Resource {
+	var stub *booksprovider.DataSourceAuthor
 	return &schema.Resource{
 		ReadContext: dataSourceAuthorRead,
-		Schema: map[string]*schema.Schema{
-			"first_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"last_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"book_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
+		Schema:      stub.Schema(),
 	}
 }
 
@@ -55,46 +40,11 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	firstName, ok := d.Get("first_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author first name",
-			Detail:   "Invalid first name parameter type",
-		})
-		return diags
-	}
-	lastName, ok := d.Get("last_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author last name",
-			Detail:   "Invalid last name parameter type",
-		})
-		return diags
-	}
-
-	gabnr := booksclient.GetAuthorByNameRequest{FirstName: firstName, LastName: lastName}
-	a, err := c.GetAuthorByName(ctx, gabnr)
+	dsa, err := booksprovider.NewDataSourceAuthor(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return terraform.AppendDiagnostic(err, nil)
 	}
 
-	err = d.Set("first_name", a.FirstName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("last_name", a.LastName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("book_count", int(a.BookCount))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(a.ID.String())
-	return diags
+	err = dsa.Read(ctx, c)
+	return terraform.AppendDiagnostic(err, nil)
 }

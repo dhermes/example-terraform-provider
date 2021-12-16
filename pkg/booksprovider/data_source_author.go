@@ -52,5 +52,6 @@ func (dsa *DataSourceAuthor) Read(ctx context.Context, c booksclient.Client) err
 	dsa.LastName = &a.LastName
 	bc := int(a.BookCount)
 	dsa.BookCount = &bc
+	dsa.ID = a.ID
 	return dsa.Persist()
 }
