@@ -10,7 +10,18 @@ Bring up the database (and ensure migrations run, etc.)
 ```bash
 make restart-postgres
 # It's a bit janky, there is a race condition with grants causing occasional
-# errors "tuple concurrently updated"
+# errors, e.g.
+#
+# # module.books_grants.postgresql_grant.app_table_grant: Creation complete after 0s [id=books_app_books_books_table]
+# # ╷
+# # │ Error: could not execute revoke query: pq: tuple concurrently updated
+# # │
+# # │   with module.books_grants.postgresql_grant.grant_application_schema_to_app,
+# # │   on ../../modules/postgresql-grants/main.tf line 23, in resource "postgresql_grant" "grant_application_schema_to_app":
+# # │   23: resource "postgresql_grant" "grant_application_schema_to_app" {
+# # │
+# # ╵
+# # ...
 ```
 
 Run the Books API server
