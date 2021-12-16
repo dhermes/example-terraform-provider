@@ -98,7 +98,7 @@ DELETE FROM
 WHERE
   a.id = $1 AND
   NOT EXISTS (
-    SELECT 1 FROM books AS b WHERE b.author_id = a.id
+    SELECT 1 FROM books AS b WHERE b.author_id = a.id FOR UPDATE
   )
 `
 )

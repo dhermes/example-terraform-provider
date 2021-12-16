@@ -30,7 +30,7 @@ SELECT
   $1, $2, $3, $4
 WHERE
   EXISTS (
-    SELECT 1 FROM authors WHERE id = $2 FOR UPDATE
+    SELECT 1 FROM authors AS a WHERE a.id = $2 FOR UPDATE
   )
 `
 	updateBook = `
