@@ -188,22 +188,11 @@ func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error 
 		return err
 	}
 
-	err = ra.d.Set("first_name", a.FirstName)
-	if err != nil {
-		return err
-	}
-
-	err = ra.d.Set("last_name", a.LastName)
-	if err != nil {
-		return err
-	}
-
-	err = ra.d.Set("book_count", int(a.BookCount))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	ra.FirstName = &a.FirstName
+	ra.LastName = &a.LastName
+	bc := int(a.BookCount)
+	ra.BookCount = &bc
+	return ra.Persist()
 }
 
 // Update is the update (U) component of the CRUD lifecycle for
