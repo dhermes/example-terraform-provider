@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
+	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
 )
 
 // Provider returns a Terraform provider for the Books API.
@@ -34,7 +35,7 @@ func Provider() *schema.Provider {
 			"addr": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("BOOKS_API_ADDR", nil),
+				DefaultFunc: schema.EnvDefaultFunc(booksprovider.EnvVarBooksAPIAddr, nil),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{

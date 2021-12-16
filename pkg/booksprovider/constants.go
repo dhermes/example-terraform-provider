@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package providershim wraps the core Books Terraform Provider.
-//
-// It is named "shim" because it translates idiomatic Go into code that
-// more tightly integrates with the Terraform interfaces (which have lots of
-// `interface{}` and internal patterns like diagnostics). The "actual"
-// implementation lives in `pkg/booksprovider`.
-package providershim
+package booksprovider
+
+const (
+	// EnvVarBooksAPIAddr is the configuration environment variable that can
+	// be used to specify the `addr` for the Books API. For example, this
+	// value could equal `http://localhost:7534`.
+	EnvVarBooksAPIAddr = "BOOKS_API_ADDR"
+)

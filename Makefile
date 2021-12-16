@@ -150,6 +150,12 @@ destroy-books-workspace:
 	@cd _terraform/workspaces/books/ && \
 	  terraform init && \
 	  terraform apply --destroy --auto-approve
+	@rm --force \
+	  _terraform/workspaces/books/.terraform.lock.hcl \
+	  _terraform/workspaces/books/terraform.tfstate \
+	  _terraform/workspaces/books/terraform.tfstate.backup
+	@rm --force --recursive \
+	  _terraform/workspaces/books/.terraform/
 
 .PHONY: start-postgres-container
 start-postgres-container:
