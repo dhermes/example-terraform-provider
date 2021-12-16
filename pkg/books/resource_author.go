@@ -61,27 +61,12 @@ func resourceAuthorCreate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	firstName, ok := d.Get("first_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author first name",
-			Detail:   "Invalid first name parameter type",
-		})
-		return diags
-	}
-	lastName, ok := d.Get("last_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author last name",
-			Detail:   "Invalid last name parameter type",
-		})
+	a, diags := authorFromResourceData(d)
+	if diags != nil {
 		return diags
 	}
 
-	a := booksclient.Author{FirstName: firstName, LastName: lastName}
-	aar, err := c.AddAuthor(ctx, a)
+	aar, err := c.AddAuthor(ctx, *a)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -126,24 +111,84 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAuthorUpdate(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
-	diags := []diag.Diagnostic{
-		{
-			Severity: diag.Error,
-			Summary:  "Author cannot be changed after creation",
-			Detail:   "Unsupported operation",
-		},
+func resourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	anyChange := d.HasChange("first_name") || d.HasChange("last_name")
+	if !anyChange {
+		return resourceAuthorRead(ctx, d, meta)
 	}
-	return diags
+
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
+	}
+
+	a, diags := authorFromResourceData(d)
+	if diags != nil {
+		return diags
+	}
+
+	_, err := c.UpdateAuthor(ctx, *a)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceAuthorRead(ctx, d, meta)
 }
 
-func resourceAuthorDelete(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
-	diags := []diag.Diagnostic{
-		{
-			Severity: diag.Error,
-			Summary:  "Author cannot be changed after creation",
-			Detail:   "Unsupported operation",
-		},
+func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
 	}
-	return diags
+
+	idStr := d.Id()
+	id, diags := idFromString(idStr)
+	if diags != nil {
+		return diags
+	}
+
+	dar := booksclient.DeleteAuthorRequest{AuthorID: id}
+	_, err := c.DeleteAuthorByID(ctx, dar)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// This is superfluous but added here for explicitness.
+	d.SetId("")
+	return nil
+}
+
+func authorFromResourceData(d *schema.ResourceData) (*booksclient.Author, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	firstName, ok := d.Get("first_name").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author first name",
+			Detail:   "Invalid first name parameter type",
+		})
+		return nil, diags
+	}
+	lastName, ok := d.Get("last_name").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author last name",
+			Detail:   "Invalid last name parameter type",
+		})
+		return nil, diags
+	}
+
+	a := booksclient.Author{FirstName: firstName, LastName: lastName}
+	idStr := d.Id()
+	if idStr != "" {
+		id, diags := idFromString(idStr)
+		if diags != nil {
+			return nil, diags
+		}
+		a.ID = &id
+	}
+
+	return &a, nil
 }

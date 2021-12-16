@@ -44,6 +44,12 @@ type GetAuthorsResponse struct {
 	Authors []Author `json:"authors"`
 }
 
+// DeleteAuthorRequest is the request for an author deletion.
+type DeleteAuthorRequest struct {
+	// AuthorID is the ID of the author being deleted.
+	AuthorID uuid.UUID `json:"author_id"`
+}
+
 // AddBookResponse is the response after a book was added.
 type AddBookResponse struct {
 	// BookID is the ID of the newly created book.
@@ -66,4 +72,10 @@ type GetBooksRequest struct {
 type GetBooksResponse struct {
 	// Books is the sequence of retrieved books.
 	Books []Book `json:"books"`
+}
+
+// DeleteBookRequest is the request for a book deletion.
+type DeleteBookRequest struct {
+	// BookID is the ID of the book being deleted.
+	BookID uuid.UUID `json:"book_id"`
 }

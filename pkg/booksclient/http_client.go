@@ -94,6 +94,37 @@ func (hc *HTTPClient) AddAuthor(ctx context.Context, a Author) (*AddAuthorRespon
 	return &response, nil
 }
 
+// UpdateAuthor updates an author stored in the books service.
+func (hc *HTTPClient) UpdateAuthor(ctx context.Context, a Author) (*Empty, error) {
+	url := fmt.Sprintf("%s/v1alpha1/author", hc.Addr)
+	asJSON, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(asJSON))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to update author (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	return &Empty{}, nil
+}
+
 // GetAuthorByID gets an author currently stored in the books service by ID.
 func (hc *HTTPClient) GetAuthorByID(ctx context.Context, gabir GetAuthorByIDRequest) (*Author, error) {
 	url := fmt.Sprintf("%s/v1alpha1/authors/%s", hc.Addr, url.PathEscape(gabir.AuthorID.String()))
@@ -194,6 +225,31 @@ func (hc *HTTPClient) GetAuthors(ctx context.Context, _ Empty) (*GetAuthorsRespo
 	return &response, nil
 }
 
+// DeleteAuthorRequest deletes an author stored in the books service.
+func (hc *HTTPClient) DeleteAuthorByID(ctx context.Context, dar DeleteAuthorRequest) (*Empty, error) {
+	url := fmt.Sprintf("%s/v1alpha1/authors/%s", hc.Addr, url.PathEscape(dar.AuthorID.String()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to delete author by ID (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	return &Empty{}, nil
+}
+
 // AddBook adds a new book to be stored in the books service.
 //
 // Before adding a book, a valid author must be created via `AddAuthor()`.
@@ -231,6 +287,37 @@ func (hc *HTTPClient) AddBook(ctx context.Context, b Book) (*AddBookResponse, er
 	}
 
 	return &response, nil
+}
+
+// UpdateBook updates a book stored in the books service.
+func (hc *HTTPClient) UpdateBook(ctx context.Context, b Book) (*Empty, error) {
+	url := fmt.Sprintf("%s/v1alpha1/book", hc.Addr)
+	asJSON, err := json.Marshal(b)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(asJSON))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to update book (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	return &Empty{}, nil
 }
 
 // GetBookByID gets a book currently stored in the books service by ID.
@@ -298,4 +385,29 @@ func (hc *HTTPClient) GetBooks(ctx context.Context, gbr GetBooksRequest) (*GetBo
 	}
 
 	return &response, nil
+}
+
+// DeleteBookByID deletes a book stored in the books service.
+func (hc *HTTPClient) DeleteBookByID(ctx context.Context, dbr DeleteBookRequest) (*Empty, error) {
+	url := fmt.Sprintf("%s/v1alpha1/books/%s", hc.Addr, url.PathEscape(dbr.BookID.String()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to delete book by ID (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	return &Empty{}, nil
 }

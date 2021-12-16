@@ -67,46 +67,12 @@ func resourceBookCreate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	authorIDStr, ok := d.Get("author_id").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author ID",
-			Detail:   "Invalid author ID parameter type",
-		})
-		return diags
-	}
-	title, ok := d.Get("title").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine book title",
-			Detail:   "Invalid book title parameter type",
-		})
-		return diags
-	}
-	publishDateStr, ok := d.Get("publish_date").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine book publish date",
-			Detail:   "Invalid book publish date parameter type",
-		})
+	b, diags := bookFromResourceData(d)
+	if diags != nil {
 		return diags
 	}
 
-	authorID, err := uuid.Parse(authorIDStr)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	publishDate, err := time.Parse(dateLayout, publishDateStr)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	publishDate = publishDate.UTC()
-
-	b := booksclient.Book{Title: title, AuthorID: authorID, PublishDate: &publishDate}
-	abr, err := c.AddBook(ctx, b)
+	abr, err := c.AddBook(ctx, *b)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -153,24 +119,103 @@ func resourceBookRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceBookUpdate(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
-	diags := []diag.Diagnostic{
-		{
-			Severity: diag.Error,
-			Summary:  "Book cannot be changed after creation",
-			Detail:   "Unsupported operation",
-		},
+func resourceBookUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	anyChange := d.HasChange("title") || d.HasChange("author_id") || d.HasChange("publish_date")
+	if !anyChange {
+		return resourceBookRead(ctx, d, meta)
 	}
-	return diags
+
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
+	}
+
+	b, diags := bookFromResourceData(d)
+	if diags != nil {
+		return diags
+	}
+
+	_, err := c.UpdateBook(ctx, *b)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceBookRead(ctx, d, meta)
 }
 
-func resourceBookDelete(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
-	diags := []diag.Diagnostic{
-		{
-			Severity: diag.Error,
-			Summary:  "Book cannot be changed after creation",
-			Detail:   "Unsupported operation",
-		},
+func resourceBookDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	c, diags := getClientFromMeta(meta)
+	if diags != nil {
+		return diags
 	}
-	return diags
+
+	idStr := d.Id()
+	id, diags := idFromString(idStr)
+	if diags != nil {
+		return diags
+	}
+
+	dbr := booksclient.DeleteBookRequest{BookID: id}
+	_, err := c.DeleteBookByID(ctx, dbr)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// This is superfluous but added here for explicitness.
+	d.SetId("")
+	return nil
+}
+
+func bookFromResourceData(d *schema.ResourceData) (*booksclient.Book, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	authorIDStr, ok := d.Get("author_id").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author ID",
+			Detail:   "Invalid author ID parameter type",
+		})
+		return nil, diags
+	}
+	title, ok := d.Get("title").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine book title",
+			Detail:   "Invalid book title parameter type",
+		})
+		return nil, diags
+	}
+	publishDateStr, ok := d.Get("publish_date").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine book publish date",
+			Detail:   "Invalid book publish date parameter type",
+		})
+		return nil, diags
+	}
+
+	authorID, err := uuid.Parse(authorIDStr)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+	publishDate, err := time.Parse(dateLayout, publishDateStr)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+	publishDate = publishDate.UTC()
+
+	b := booksclient.Book{Title: title, AuthorID: authorID, PublishDate: &publishDate}
+	idStr := d.Id()
+	if idStr != "" {
+		id, diags := idFromString(idStr)
+		if diags != nil {
+			return nil, diags
+		}
+		b.ID = &id
+	}
+
+	return &b, nil
 }
