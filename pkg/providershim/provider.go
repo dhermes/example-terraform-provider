@@ -16,12 +16,10 @@ package providershim
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
 )
 
@@ -49,33 +47,17 @@ func Provider() *schema.Provider {
 	}
 }
 
-func providerConfigure(_ context.Context, d *schema.ResourceData) (meta interface{}, diags diag.Diagnostics) {
-	addr, ok := d.Get("addr").(string)
-	if addr == "" || !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to create Books API client",
-			Detail:   "Unable to determine address for Books API",
-		})
-		return
+func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	c, err := booksprovider.ConfigureContext(ctx, d)
+	if err == nil {
+		return c, nil
 	}
 
-	_, err := url.Parse(addr)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to create Books API client",
-			Detail:   "Failed to parse Books API base address as a URL",
-		})
-		return
+	dp, ok := err.(booksprovider.DiagnosticsProvider)
+	if ok {
+		return nil, dp.AppendDiagnostic(nil)
 	}
 
-	c, err := booksclient.NewHTTPClient(booksclient.OptAddr(addr))
-	if err != nil {
-		diags = diag.FromErr(err)
-		return
-	}
-
-	meta = &c
-	return
+	diags := diag.FromErr(err)
+	return nil, diags
 }
