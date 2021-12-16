@@ -111,6 +111,8 @@ clean:
 	  _terraform/workspaces/books/.terraform/ \
 	  _terraform/workspaces/database/.terraform/ \
 	  _terraform/workspaces/docker/.terraform/
+	rm --force --recursive \
+	  "$(INSTALL_TF_PATH)/"
 	docker rm --force \
 	  dev-postgres-books
 	docker network rm dev-network-books || true
