@@ -23,8 +23,9 @@ import (
 
 // NewResourceAuthor creates a new `ResourceAuthor` from a Terraform resource
 // data struct.
-func NewResourceAuthor(d *schema.ResourceData) ResourceAuthor {
-	return ResourceAuthor{d: d}
+func NewResourceAuthor(d *schema.ResourceData) (*ResourceAuthor, error) {
+	ra := ResourceAuthor{d: d}
+	return &ra, nil
 }
 
 // GetFirstName is a value accessor for a pointer field; a safe dereference.

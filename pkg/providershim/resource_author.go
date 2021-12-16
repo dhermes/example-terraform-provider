@@ -62,8 +62,12 @@ func resourceAuthorCreate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	ra := booksprovider.NewResourceAuthor(d)
-	err := ra.Create(ctx, c)
+	ra, err := booksprovider.NewResourceAuthor(d)
+	if err != nil {
+		return terraform.AppendDiagnostic(err, nil)
+	}
+
+	err = ra.Create(ctx, c)
 	return terraform.AppendDiagnostic(err, nil)
 }
 
@@ -73,8 +77,12 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	ra := booksprovider.NewResourceAuthor(d)
-	err := ra.Read(ctx, c)
+	ra, err := booksprovider.NewResourceAuthor(d)
+	if err != nil {
+		return terraform.AppendDiagnostic(err, nil)
+	}
+
+	err = ra.Read(ctx, c)
 	return terraform.AppendDiagnostic(err, nil)
 }
 
@@ -84,8 +92,12 @@ func resourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	ra := booksprovider.NewResourceAuthor(d)
-	err := ra.Update(ctx, c)
+	ra, err := booksprovider.NewResourceAuthor(d)
+	if err != nil {
+		return terraform.AppendDiagnostic(err, nil)
+	}
+
+	err = ra.Update(ctx, c)
 	return terraform.AppendDiagnostic(err, nil)
 }
 
@@ -95,7 +107,11 @@ func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	ra := booksprovider.NewResourceAuthor(d)
-	err := ra.Delete(ctx, c)
+	ra, err := booksprovider.NewResourceAuthor(d)
+	if err != nil {
+		return terraform.AppendDiagnostic(err, nil)
+	}
+
+	err = ra.Delete(ctx, c)
 	return terraform.AppendDiagnostic(err, nil)
 }
