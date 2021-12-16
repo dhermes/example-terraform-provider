@@ -44,11 +44,11 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"books_api_author": dataSourceAuthor(),
 		},
-		ConfigureContextFunc: providerConfigure,
+		ConfigureContextFunc: configureContext,
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func configureContext(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	c, err := booksprovider.ConfigureContext(ctx, d)
 	if err == nil {
 		return c, nil
