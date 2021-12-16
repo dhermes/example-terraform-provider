@@ -29,20 +29,20 @@ func dataSourceAuthor() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceAuthorRead,
 		Schema: map[string]*schema.Schema{
-			"id": {
+			"first_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"first_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"last_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"book_count": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"id": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -55,22 +55,27 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	idStr, ok := d.Get("id").(string)
+	firstName, ok := d.Get("first_name").(string)
 	if !ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Could not determine author ID",
-			Detail:   "Invalid ID parameter type",
+			Summary:  "Could not determine author first name",
+			Detail:   "Invalid first name parameter type",
 		})
 		return diags
 	}
-	id, diags := idFromString(idStr)
-	if diags != nil {
+	lastName, ok := d.Get("last_name").(string)
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Could not determine author last name",
+			Detail:   "Invalid last name parameter type",
+		})
 		return diags
 	}
 
-	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
-	a, err := c.GetAuthorByID(ctx, gabir)
+	gabnr := booksclient.GetAuthorByNameRequest{FirstName: firstName, LastName: lastName}
+	a, err := c.GetAuthorByName(ctx, gabnr)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -90,6 +95,6 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	d.SetId(idStr)
+	d.SetId(a.ID.String())
 	return diags
 }

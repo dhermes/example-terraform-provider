@@ -137,6 +137,7 @@ func (hc *HTTPClient) GetAuthorByName(ctx context.Context, gabnr GetAuthorByName
 	q := req.URL.Query()
 	q.Add("first_name", gabnr.FirstName)
 	q.Add("last_name", gabnr.LastName)
+	req.URL.RawQuery = q.Encode()
 
 	resp, err := hc.RawClient().Do(req)
 	if err != nil {
@@ -274,6 +275,7 @@ func (hc *HTTPClient) GetBooks(ctx context.Context, gbr GetBooksRequest) (*GetBo
 	req.Header.Set("Content-Type", "application/json")
 	q := req.URL.Query()
 	q.Add("author_id", gbr.AuthorID.String())
+	req.URL.RawQuery = q.Encode()
 
 	resp, err := hc.RawClient().Do(req)
 	if err != nil {
