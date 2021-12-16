@@ -127,8 +127,8 @@ func resourceBookRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		return diags
 	}
 
-	gbr := booksclient.GetBookRequest{BookID: id}
-	b, err := c.GetBook(ctx, gbr)
+	gbbir := booksclient.GetBookByIDRequest{BookID: id}
+	b, err := c.GetBookByID(ctx, gbbir)
 	if err != nil {
 		return diag.FromErr(err)
 	}

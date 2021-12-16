@@ -24,12 +24,12 @@ import (
 func Run(ctx context.Context, c Config) error {
 	m := http.NewServeMux()
 
-	m.HandleFunc("/v1alpha1/author", addAuthor)
+	m.HandleFunc("/v1alpha1/author", oneAuthorDispatch)
 	m.HandleFunc("/v1alpha1/authors", getAuthors)
-	m.HandleFunc("/v1alpha1/authors/", getAuthor)
+	m.HandleFunc("/v1alpha1/authors/", getAuthorByID)
 	m.HandleFunc("/v1alpha1/book", addBook)
 	m.HandleFunc("/v1alpha1/books", getBooks)
-	m.HandleFunc("/v1alpha1/books/", getBook)
+	m.HandleFunc("/v1alpha1/books/", getBookByID)
 	m.HandleFunc("/", defaultHandler)
 
 	s := &http.Server{

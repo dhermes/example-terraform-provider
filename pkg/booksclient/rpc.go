@@ -24,10 +24,18 @@ type AddAuthorResponse struct {
 	AuthorID uuid.UUID `json:"author_id"`
 }
 
-// GetAuthorRequest is the request for a get author query.
-type GetAuthorRequest struct {
+// GetAuthorByIDRequest is the request for a query to get an author by ID.
+type GetAuthorByIDRequest struct {
 	// AuthorID is the ID of the author being queried.
 	AuthorID uuid.UUID `json:"author_id"`
+}
+
+// GetAuthorByNameRequest is the request for a query to get an author by name.
+type GetAuthorByNameRequest struct {
+	// FirstName is the given name of the author.
+	FirstName string `json:"first_name"`
+	// LastName is the surname of the author.
+	LastName string `json:"last_name"`
 }
 
 // GetAuthorsResponse is the response for a list authors query.
@@ -42,8 +50,8 @@ type AddBookResponse struct {
 	BookID uuid.UUID `json:"book_id"`
 }
 
-// GetBookRequest is the request for a get author query.
-type GetBookRequest struct {
+// GetBookByIDRequest is the request for a query to get a book by ID.
+type GetBookByIDRequest struct {
 	// BookID is the ID of the book being queried.
 	BookID uuid.UUID `json:"book_id"`
 }

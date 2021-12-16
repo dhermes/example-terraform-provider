@@ -40,13 +40,16 @@ func resourceAuthor() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"book_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 		Importer: &schema.ResourceImporter{
-			// NOTE: A pure pass through is insufficient if `books_count` gets added.
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
@@ -99,8 +102,8 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	gar := booksclient.GetAuthorRequest{AuthorID: id}
-	a, err := c.GetAuthor(ctx, gar)
+	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
+	a, err := c.GetAuthorByID(ctx, gabir)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -111,6 +114,11 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 
 	err = d.Set("last_name", a.LastName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("book_count", int(a.BookCount))
 	if err != nil {
 		return diag.FromErr(err)
 	}

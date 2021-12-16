@@ -21,7 +21,7 @@ import (
 // NOTE: Ensure that
 //       * `defaultHandler` satisfies `handleFunc`.
 var (
-	_ handleFunc = getAuthor
+	_ handleFunc = getAuthorByID
 )
 
 func defaultHandler(w http.ResponseWriter, req *http.Request) {

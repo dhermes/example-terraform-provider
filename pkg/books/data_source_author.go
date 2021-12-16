@@ -41,6 +41,10 @@ func dataSourceAuthor() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"book_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -65,8 +69,8 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	gar := booksclient.GetAuthorRequest{AuthorID: id}
-	a, err := c.GetAuthor(ctx, gar)
+	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
+	a, err := c.GetAuthorByID(ctx, gabir)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -77,6 +81,11 @@ func dataSourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	err = d.Set("last_name", a.LastName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("book_count", int(a.BookCount))
 	if err != nil {
 		return diag.FromErr(err)
 	}

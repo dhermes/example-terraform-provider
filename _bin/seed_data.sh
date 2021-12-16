@@ -89,6 +89,15 @@ GET_RESULT=$(curl \
   "${BOOKS_ADDR}/v1alpha1/authors/${AUTHOR_ID7}")
 echo "${GET_RESULT}" | jq
 
+## Get Author By Name
+echo '--------------------------------------------------'
+echo ':: Getting author James Joyce by name:'
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/author?first_name=James&last_name=Joyce")
+echo "${GET_RESULT}" | jq
+
 ## Get All Authors
 echo '--------------------------------------------------'
 echo ':: Getting all authors:'

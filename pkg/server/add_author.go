@@ -22,10 +22,28 @@ import (
 )
 
 // NOTE: Ensure that
+//       * `oneAuthorDispatch` satisfies `handleFunc`.
 //       * `addAuthor` satisfies `handleFunc`.
 var (
+	_ handleFunc = oneAuthorDispatch
 	_ handleFunc = addAuthor
 )
+
+// oneAuthorDispatch dispatches to `addAuthor()` for a `POST` request and
+// to `getAuthorByName()` for a `GET` request.
+func oneAuthorDispatch(w http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodPost {
+		addAuthor(w, req)
+		return
+	}
+
+	if req.Method == http.MethodGet {
+		getAuthorByName(w, req)
+		return
+	}
+
+	notAllowed(w, req, req.Method+"-mismatch") // Ensure the method is wrong
+}
 
 func addAuthor(w http.ResponseWriter, req *http.Request) {
 	if notAllowed(w, req, http.MethodPost) {

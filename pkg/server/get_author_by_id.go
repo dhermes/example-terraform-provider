@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -26,24 +25,24 @@ import (
 )
 
 // NOTE: Ensure that
-//       * `getBook` satisfies `handleFunc`.
+//       * `getAuthor` satisfies `handleFunc`.
 var (
-	_ handleFunc = getBook
+	_ handleFunc = getAuthorByID
 )
 
-func getBook(w http.ResponseWriter, req *http.Request) {
+func getAuthorByID(w http.ResponseWriter, req *http.Request) {
 	if notAllowed(w, req, http.MethodGet) {
 		return
 	}
 	if contentTypeNotJSON(w, req) {
 		return
 	}
-	if !strings.HasPrefix(req.URL.Path, "/v1alpha1/books/") {
+	if !strings.HasPrefix(req.URL.Path, "/v1alpha1/authors/") {
 		notFound(w)
 		return
 	}
 
-	suffix := strings.TrimPrefix(req.URL.Path, "/v1alpha1/books/")
+	suffix := strings.TrimPrefix(req.URL.Path, "/v1alpha1/authors/")
 	id, err := uuid.Parse(suffix)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
@@ -54,34 +53,30 @@ func getBook(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 	pool := model.GetPool(ctx)
-	b, err := model.GetBookByID(ctx, pool, id)
+	a, err := model.GetAuthorByID(ctx, pool, id)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		// TODO: Consider supporting a 404 here
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "failed to get book by ID"}`+"\n")
+		fmt.Fprintf(w, `{"error": "failed to get author by ID"}`+"\n")
 		return
 	}
 
-	serializeJSONResponse(w, dbBookToResult(b))
+	serializeJSONResponse(w, dbAuthorToResult(a))
 }
 
-type bookResponse struct {
-	ID          string     `json:"id,omitempty"`
-	AuthorID    string     `json:"author_id"`
-	Title       string     `json:"title"`
-	PublishDate *time.Time `json:"publish_date,omitempty"`
+type authorResponse struct {
+	ID        string `json:"id,omitempty"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	BookCount uint32 `json:"book_count"`
 }
 
-func dbBookToResult(b *model.Book) bookResponse {
-	br := bookResponse{
-		ID:       b.ID.String(),
-		AuthorID: b.AuthorID.String(),
-		Title:    b.Title,
+func dbAuthorToResult(a *model.Author) authorResponse {
+	return authorResponse{
+		ID:        a.ID.String(),
+		FirstName: a.FirstName,
+		LastName:  a.LastName,
+		BookCount: a.BookCount,
 	}
-	if b.PublishDate != nil {
-		t := b.PublishDate.UTC()
-		br.PublishDate = &t
-	}
-	return br
 }

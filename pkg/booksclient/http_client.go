@@ -94,9 +94,9 @@ func (hc *HTTPClient) AddAuthor(ctx context.Context, a Author) (*AddAuthorRespon
 	return &response, nil
 }
 
-// GetAuthor gets an author currently stored in the books service by ID.
-func (hc *HTTPClient) GetAuthor(ctx context.Context, gar GetAuthorRequest) (*Author, error) {
-	url := fmt.Sprintf("%s/v1alpha1/authors/%s", hc.Addr, url.PathEscape(gar.AuthorID.String()))
+// GetAuthorByID gets an author currently stored in the books service by ID.
+func (hc *HTTPClient) GetAuthorByID(ctx context.Context, gabir GetAuthorByIDRequest) (*Author, error) {
+	url := fmt.Sprintf("%s/v1alpha1/authors/%s", hc.Addr, url.PathEscape(gabir.AuthorID.String()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,42 @@ func (hc *HTTPClient) GetAuthor(ctx context.Context, gar GetAuthorRequest) (*Aut
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to get author (status %d, body %q)", resp.StatusCode, body)
+		return nil, fmt.Errorf("failed to get author by ID (status %d, body %q)", resp.StatusCode, body)
+	}
+
+	var response Author
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetAuthorByName gets an author currently stored in the books service by name.
+func (hc *HTTPClient) GetAuthorByName(ctx context.Context, gabnr GetAuthorByNameRequest) (*Author, error) {
+	url := fmt.Sprintf("%s/v1alpha1/author", hc.Addr)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	q := req.URL.Query()
+	q.Add("first_name", gabnr.FirstName)
+	q.Add("last_name", gabnr.LastName)
+
+	resp, err := hc.RawClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to get author by name (status %d, body %q)", resp.StatusCode, body)
 	}
 
 	var response Author
@@ -197,9 +232,9 @@ func (hc *HTTPClient) AddBook(ctx context.Context, b Book) (*AddBookResponse, er
 	return &response, nil
 }
 
-// GetBook gets a book currently stored in the books service by ID.
-func (hc *HTTPClient) GetBook(ctx context.Context, gbr GetBookRequest) (*Book, error) {
-	url := fmt.Sprintf("%s/v1alpha1/books/%s", hc.Addr, url.PathEscape(gbr.BookID.String()))
+// GetBookByID gets a book currently stored in the books service by ID.
+func (hc *HTTPClient) GetBookByID(ctx context.Context, gbbir GetBookByIDRequest) (*Book, error) {
+	url := fmt.Sprintf("%s/v1alpha1/books/%s", hc.Addr, url.PathEscape(gbbir.BookID.String()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -217,7 +252,7 @@ func (hc *HTTPClient) GetBook(ctx context.Context, gbr GetBookRequest) (*Book, e
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to get book (status %d, body %q)", resp.StatusCode, body)
+		return nil, fmt.Errorf("failed to get book by ID (status %d, body %q)", resp.StatusCode, body)
 	}
 
 	var response Book

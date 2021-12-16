@@ -27,7 +27,7 @@ import (
 // NOTE: Ensure that
 //       * `addBook` satisfies `handleFunc`.
 var (
-	_ handleFunc = getAuthor
+	_ handleFunc = getAuthorByID
 )
 
 func addBook(w http.ResponseWriter, req *http.Request) {

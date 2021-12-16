@@ -37,15 +37,35 @@ SELECT
     SELECT
       COUNT(*) AS book_count
     FROM
-      books
+      books AS b
     WHERE
-      author_id = $1
+      b.author_id = a.id
   )
 FROM
-  authors
+  authors AS a
 WHERE
   id = $1
 `
+	getAuthorByName = `
+SELECT
+  id,
+  first_name,
+  last_name,
+  (
+    SELECT
+      COUNT(*) AS book_count
+    FROM
+      books AS b
+    WHERE
+      b.author_id = a.id
+  )
+FROM
+  authors AS a
+WHERE
+  first_name = $1 AND
+  last_name = $2
+`
+
 	getAllAuthors = `
 SELECT
   a.id, a.first_name, a.last_name, COALESCE(b.book_count, 0)
@@ -82,6 +102,19 @@ func InsertAuthor(ctx context.Context, pool *sql.DB, a Author) (uuid.UUID, error
 // GetAuthorByID gets an author from the database by ID.
 func GetAuthorByID(ctx context.Context, pool *sql.DB, id uuid.UUID) (*Author, error) {
 	row := pool.QueryRowContext(ctx, getAuthorByID, id)
+
+	a := Author{}
+	err := row.Scan(&a.ID, &a.FirstName, &a.LastName, &a.BookCount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
+// GetAuthorByName gets an author from the database by name.
+func GetAuthorByName(ctx context.Context, pool *sql.DB, firstName, lastName string) (*Author, error) {
+	row := pool.QueryRowContext(ctx, getAuthorByName, firstName, lastName)
 
 	a := Author{}
 	err := row.Scan(&a.ID, &a.FirstName, &a.LastName, &a.BookCount)
