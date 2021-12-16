@@ -28,5 +28,6 @@ type Client interface {
 	GetAuthor(context.Context, GetAuthorRequest) (*Author, error)
 	GetAuthors(context.Context, Empty) (*GetAuthorsResponse, error)
 	AddBook(context.Context, Book) (*AddBookResponse, error)
+	GetBook(context.Context, GetBookRequest) (*Book, error)
 	GetBooks(context.Context, GetBooksRequest) (*GetBooksResponse, error)
 }

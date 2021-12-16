@@ -25,6 +25,7 @@ help:
 	@echo 'Terraform-specific Targets:'
 	@echo '   make install-terraform-provider    Install `terraform-provider-books` into Terraform plugins directory'
 	@echo '   make apply-books-workspace         Apply the workspace that uses `terraform-provider-books`'
+	@echo '   make destroy-books-workspace       Destroy the workspace that uses `terraform-provider-books`'
 	@echo '   make start-postgres-container      Start PostgreSQL Docker containers'
 	@echo '   make stop-postgres-container       Stop PostgreSQL Docker containers'
 	@echo '   make initialize-database           Initialize the database, schema, roles and grants in the PostgreSQL instances'
@@ -141,6 +142,12 @@ apply-books-workspace:
 	@cd _terraform/workspaces/books/ && \
 	  terraform init && \
 	  terraform apply --auto-approve
+
+.PHONY: destroy-books-workspace
+destroy-books-workspace:
+	@cd _terraform/workspaces/books/ && \
+	  terraform init && \
+	  terraform apply --destroy --auto-approve
 
 .PHONY: start-postgres-container
 start-postgres-container:

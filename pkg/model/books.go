@@ -32,6 +32,14 @@ WHERE
     SELECT 1 FROM authors WHERE id = $2 FOR UPDATE
   )
 `
+	getBookByID = `
+SELECT
+  id, author_id, title, publish_date
+FROM
+  books
+WHERE
+  id = $1
+`
 	getAllBooksByAuthor = `
 SELECT
   id, author_id, title, publish_date
@@ -59,6 +67,19 @@ func InsertBook(ctx context.Context, pool *sql.DB, b Book) (uuid.UUID, error) {
 	}
 
 	return id, nil
+}
+
+// GetBookByID gets a book from the database by ID.
+func GetBookByID(ctx context.Context, pool *sql.DB, id uuid.UUID) (*Book, error) {
+	row := pool.QueryRowContext(ctx, getBookByID, id)
+
+	b := Book{}
+	err := row.Scan(&b.ID, &b.AuthorID, &b.Title, &b.PublishDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &b, nil
 }
 
 // GetAllBooksByAuthor gets (all) books by an author from the database.

@@ -17,6 +17,8 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -24,34 +26,25 @@ import (
 )
 
 // NOTE: Ensure that
-//       * `getBooks` satisfies `handleFunc`.
+//       * `getBook` satisfies `handleFunc`.
 var (
-	_ handleFunc = getAuthor
+	_ handleFunc = getBook
 )
 
-func getBooks(w http.ResponseWriter, req *http.Request) {
+func getBook(w http.ResponseWriter, req *http.Request) {
 	if notAllowed(w, req, http.MethodGet) {
 		return
 	}
 	if contentTypeNotJSON(w, req) {
 		return
 	}
-	if req.URL.Path != "/v1alpha1/books" {
+	if !strings.HasPrefix(req.URL.Path, "/v1alpha1/books/") {
 		notFound(w)
 		return
 	}
 
-	// NOTE: We could be much more restrictive here with known / unkown inputs.
-	q := req.URL.Query()
-	idStr := q.Get("author_id")
-	if idStr == "" {
-		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "missing author ID query parameter"}`+"\n")
-		return
-	}
-
-	id, err := uuid.Parse(idStr)
+	suffix := strings.TrimPrefix(req.URL.Path, "/v1alpha1/books/")
+	id, err := uuid.Parse(suffix)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		w.WriteHeader(http.StatusBadRequest)
@@ -61,23 +54,34 @@ func getBooks(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 	pool := model.GetPool(ctx)
-	booksDB, err := model.GetAllBooksByAuthor(ctx, pool, id)
+	b, err := model.GetBookByID(ctx, pool, id)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
+		// TODO: Consider supporting a 404 here
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "failed to get all books by author"}`+"\n")
+		fmt.Fprintf(w, `{"error": "failed to get book by ID"}`+"\n")
 		return
 	}
 
-	books := make([]bookResponse, len(booksDB))
-	for i, b := range booksDB {
-		books[i] = dbBookToResult(&b)
-	}
-	response := booksResponse{Books: books}
-	serializeJSONResponse(w, response)
-
+	serializeJSONResponse(w, dbBookToResult(b))
 }
 
-type booksResponse struct {
-	Books []bookResponse `json:"books"`
+type bookResponse struct {
+	ID          string     `json:"id,omitempty"`
+	AuthorID    string     `json:"author_id"`
+	Title       string     `json:"title"`
+	PublishDate *time.Time `json:"publish_date,omitempty"`
+}
+
+func dbBookToResult(b *model.Book) bookResponse {
+	br := bookResponse{
+		ID:       b.ID.String(),
+		AuthorID: b.AuthorID.String(),
+		Title:    b.Title,
+	}
+	if b.PublishDate != nil {
+		t := b.PublishDate.UTC()
+		br.PublishDate = &t
+	}
+	return br
 }

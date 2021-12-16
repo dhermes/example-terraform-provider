@@ -42,6 +42,12 @@ type AddBookResponse struct {
 	BookID uuid.UUID `json:"book_id"`
 }
 
+// GetBookRequest is the request for a get author query.
+type GetBookRequest struct {
+	// BookID is the ID of the book being queried.
+	BookID uuid.UUID `json:"book_id"`
+}
+
 // GetBooksRequest is a request for a books-by-author query.
 type GetBooksRequest struct {
 	// AuthorID is the ID of the author of the books.

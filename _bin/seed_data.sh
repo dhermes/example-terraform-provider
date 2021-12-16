@@ -165,13 +165,22 @@ RESPONSE_BOOK8=$(curl \
 BOOK_ID8=$(echo "${RESPONSE_BOOK8}" | jq '.book_id' -r)
 echo "Added book Finnegans Wake by James Joyce: ${BOOK_ID8}"
 
+## Get Book by ID
+echo '--------------------------------------------------'
+echo ':: Getting book East of Eden by ID:'
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/books/${BOOK_ID4}")
+echo "${GET_RESULT}" | jq
+
 ## Get All Books by Author
 echo '--------------------------------------------------'
 echo ':: Getting all books by James Joyce:'
 GET_RESULT=$(curl \
   --silent --show-error --fail \
   --header 'Content-Type: application/json' \
-  "${BOOKS_ADDR}/v1alpha1/books/${AUTHOR_ID7}")
+  "${BOOKS_ADDR}/v1alpha1/books?author_id=${AUTHOR_ID7}")
 echo "${GET_RESULT}" | jq
 
 ## Get Author By ID (again)

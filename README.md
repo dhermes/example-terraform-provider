@@ -139,6 +139,7 @@ Usage:
 Terraform-specific Targets:
    make install-terraform-provider    Install `terraform-provider-books` into Terraform plugins directory
    make apply-books-workspace         Apply the workspace that uses `terraform-provider-books`
+   make destroy-books-workspace       Destroy the workspace that uses `terraform-provider-books`
    make start-postgres-container      Start PostgreSQL Docker containers
    make stop-postgres-container       Stop PostgreSQL Docker containers
    make initialize-database           Initialize the database, schema, roles and grants in the PostgreSQL instances

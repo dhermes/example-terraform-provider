@@ -79,7 +79,7 @@ func InsertAuthor(ctx context.Context, pool *sql.DB, a Author) (uuid.UUID, error
 	return id, nil
 }
 
-// GetAuthorByID gets an authors from the database by ID.
+// GetAuthorByID gets an author from the database by ID.
 func GetAuthorByID(ctx context.Context, pool *sql.DB, id uuid.UUID) (*Author, error) {
 	row := pool.QueryRowContext(ctx, getAuthorByID, id)
 

@@ -72,10 +72,6 @@ type authorResponse struct {
 	BookCount uint32 `json:"book_count"`
 }
 
-type authorsResponse struct {
-	Authors []authorResponse `json:"authors"`
-}
-
 func dbAuthorToResult(a *model.Author) authorResponse {
 	return authorResponse{
 		ID:        a.ID.String(),

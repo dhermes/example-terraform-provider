@@ -39,6 +39,7 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"books_api_author": resourceAuthor(),
+			"books_api_book":   resourceBook(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"books_api_author": dataSourceAuthor(),

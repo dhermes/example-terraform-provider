@@ -56,3 +56,7 @@ func getAuthors(w http.ResponseWriter, req *http.Request) {
 	response := authorsResponse{Authors: authors}
 	serializeJSONResponse(w, response)
 }
+
+type authorsResponse struct {
+	Authors []authorResponse `json:"authors"`
+}

@@ -28,7 +28,8 @@ func Run(ctx context.Context, c Config) error {
 	m.HandleFunc("/v1alpha1/authors", getAuthors)
 	m.HandleFunc("/v1alpha1/authors/", getAuthor)
 	m.HandleFunc("/v1alpha1/book", addBook)
-	m.HandleFunc("/v1alpha1/books/", getBooks)
+	m.HandleFunc("/v1alpha1/books", getBooks)
+	m.HandleFunc("/v1alpha1/books/", getBook)
 	m.HandleFunc("/", defaultHandler)
 
 	s := &http.Server{
