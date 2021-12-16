@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+resource "books_api_author" "grr_martin" {
+  provider = books.local
+
+  first_name = "George R.R."
+  last_name  = "Martin"
+}
+
 resource "books_api_book" "song_fire_ice1" {
   provider = books.local
 
