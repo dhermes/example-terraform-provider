@@ -25,6 +25,11 @@ import (
 // data struct.
 func NewResourceAuthor(d *schema.ResourceData) (*ResourceAuthor, error) {
 	ra := ResourceAuthor{d: d}
+	err := ra.Populate()
+	if err != nil {
+		return nil, err
+	}
+
 	return &ra, nil
 }
 

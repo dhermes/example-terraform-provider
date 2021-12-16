@@ -39,12 +39,10 @@ type ResourceAuthor struct {
 
 // Create is the create (C) component of the CRUD lifecycle for
 // the `books_api_author` resource.
+//
+// NOTE: This assumes the called has already invoked `ra.Populate()`, either
+//       directly or indirectly, e.g. via `NewResourceAuthor()`.
 func (ra *ResourceAuthor) Create(ctx context.Context, c booksclient.Client) error {
-	err := ra.Populate()
-	if err != nil {
-		return err
-	}
-
 	a := booksclient.Author{FirstName: ra.GetFirstName(), LastName: ra.GetLastName()}
 	aar, err := c.AddAuthor(ctx, a)
 	if err != nil {
@@ -62,12 +60,10 @@ func (ra *ResourceAuthor) Create(ctx context.Context, c booksclient.Client) erro
 
 // Read is the read (R) component of the CRUD lifecycle for
 // the `books_api_author` resource.
+//
+// NOTE: This assumes the called has already invoked `ra.Populate()`, either
+//       directly or indirectly, e.g. via `NewResourceAuthor()`.
 func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error {
-	err := ra.Populate()
-	if err != nil {
-		return err
-	}
-
 	id := ra.GetID()
 	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
 	a, err := c.GetAuthorByID(ctx, gabir)
@@ -84,18 +80,16 @@ func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error 
 
 // Update is the update (U) component of the CRUD lifecycle for
 // the `books_api_author` resource.
+//
+// NOTE: This assumes the called has already invoked `ra.Populate()`, either
+//       directly or indirectly, e.g. via `NewResourceAuthor()`.
 func (ra *ResourceAuthor) Update(ctx context.Context, c booksclient.Client) error {
 	if !ra.Changed() {
 		return ra.Read(ctx, c)
 	}
 
-	err := ra.Populate()
-	if err != nil {
-		return err
-	}
-
 	a := booksclient.Author{ID: ra.ID, FirstName: ra.GetFirstName(), LastName: ra.GetLastName()}
-	_, err = c.UpdateAuthor(ctx, a)
+	_, err := c.UpdateAuthor(ctx, a)
 	if err != nil {
 		return err
 	}
