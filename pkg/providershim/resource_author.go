@@ -20,7 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
+	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
+	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
 // resourceAuthor returns the `author` resource in the Terraform provider for
@@ -61,18 +62,8 @@ func resourceAuthorCreate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	a, diags := authorFromResourceData(d)
-	if diags != nil {
-		return diags
-	}
-
-	aar, err := c.AddAuthor(ctx, *a)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(aar.AuthorID.String())
-	return resourceAuthorRead(ctx, d, meta)
+	err := booksprovider.ResourceAuthorCreate(ctx, d, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -81,58 +72,18 @@ func resourceAuthorRead(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	idStr := d.Id()
-	id, diags := idFromString(idStr)
-	if diags != nil {
-		return diags
-	}
-
-	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
-	a, err := c.GetAuthorByID(ctx, gabir)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("first_name", a.FirstName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("last_name", a.LastName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("book_count", int(a.BookCount))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	err := booksprovider.ResourceAuthorRead(ctx, d, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	anyChange := d.HasChange("first_name") || d.HasChange("last_name")
-	if !anyChange {
-		return resourceAuthorRead(ctx, d, meta)
-	}
-
 	c, diags := getClientFromMeta(meta)
 	if diags != nil {
 		return diags
 	}
 
-	a, diags := authorFromResourceData(d)
-	if diags != nil {
-		return diags
-	}
-
-	_, err := c.UpdateAuthor(ctx, *a)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return resourceAuthorRead(ctx, d, meta)
+	err := booksprovider.ResourceAuthorUpdate(ctx, d, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -141,54 +92,6 @@ func resourceAuthorDelete(ctx context.Context, d *schema.ResourceData, meta inte
 		return diags
 	}
 
-	idStr := d.Id()
-	id, diags := idFromString(idStr)
-	if diags != nil {
-		return diags
-	}
-
-	dar := booksclient.DeleteAuthorRequest{AuthorID: id}
-	_, err := c.DeleteAuthorByID(ctx, dar)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// This is superfluous but added here for explicitness.
-	d.SetId("")
-	return nil
-}
-
-func authorFromResourceData(d *schema.ResourceData) (*booksclient.Author, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	firstName, ok := d.Get("first_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author first name",
-			Detail:   "Invalid first name parameter type",
-		})
-		return nil, diags
-	}
-	lastName, ok := d.Get("last_name").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author last name",
-			Detail:   "Invalid last name parameter type",
-		})
-		return nil, diags
-	}
-
-	a := booksclient.Author{FirstName: firstName, LastName: lastName}
-	idStr := d.Id()
-	if idStr != "" {
-		id, diags := idFromString(idStr)
-		if diags != nil {
-			return nil, diags
-		}
-		a.ID = &id
-	}
-
-	return &a, nil
+	err := booksprovider.ResourceAuthorDelete(ctx, d, c)
+	return terraform.AppendDiagnostic(err, nil)
 }

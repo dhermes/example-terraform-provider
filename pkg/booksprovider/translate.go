@@ -15,39 +15,53 @@
 package booksprovider
 
 import (
-	"context"
-	"net/url"
-
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
-// Configure is a function for configuring the provider.
-func Configure(_ context.Context, d *schema.ResourceData) (booksclient.Client, error) {
-	addr, ok := d.Get("addr").(string)
-	if addr == "" || !ok {
+func idFromString(idStr string) (uuid.UUID, error) {
+	id, err := uuid.Parse(idStr)
+	if err == nil {
+		return id, nil
+	}
+
+	err = terraform.DiagnosticError{
+		Summary: "Could not determine ID",
+		Detail:  "Invalid ID parameter value",
+	}
+	return uuid.Nil, err
+}
+
+func authorFromResourceData(d *schema.ResourceData) (*booksclient.Author, error) {
+	firstName, ok := d.Get("first_name").(string)
+	if !ok {
 		err := terraform.DiagnosticError{
-			Summary: "Unable to create Books API client",
-			Detail:  "Unable to determine address for Books API",
+			Summary: "Could not determine author first name",
+			Detail:  "Invalid first name parameter type",
+		}
+		return nil, err
+	}
+	lastName, ok := d.Get("last_name").(string)
+	if !ok {
+		err := terraform.DiagnosticError{
+			Summary: "Could not determine author last name",
+			Detail:  "Invalid last name parameter type",
 		}
 		return nil, err
 	}
 
-	_, err := url.Parse(addr)
-	if err != nil {
-		err := terraform.DiagnosticError{
-			Summary: "Unable to create Books API client",
-			Detail:  "Failed to parse Books API base address as a URL",
+	a := booksclient.Author{FirstName: firstName, LastName: lastName}
+	idStr := d.Id()
+	if idStr != "" {
+		id, diags := idFromString(idStr)
+		if diags != nil {
+			return nil, diags
 		}
-		return nil, err
+		a.ID = &id
 	}
 
-	c, err := booksclient.NewHTTPClient(booksclient.OptAddr(addr))
-	if err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+	return &a, nil
 }

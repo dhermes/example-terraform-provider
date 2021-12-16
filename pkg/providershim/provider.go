@@ -49,16 +49,10 @@ func Provider() *schema.Provider {
 }
 
 func configureContext(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	c, err := booksprovider.ConfigureContext(ctx, d)
+	c, err := booksprovider.Configure(ctx, d)
 	if err == nil {
 		return c, nil
 	}
 
-	dp, ok := err.(terraform.DiagnosticsProvider)
-	if ok {
-		return nil, dp.AppendDiagnostic(nil)
-	}
-
-	diags := diag.FromErr(err)
-	return nil, diags
+	return nil, terraform.AppendDiagnostic(err, nil)
 }

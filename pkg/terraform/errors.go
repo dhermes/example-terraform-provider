@@ -26,11 +26,6 @@ var (
 	_ DiagnosticsProvider = DiagnosticError{}
 )
 
-// DiagnosticsProvider is an extended error interface.
-type DiagnosticsProvider interface {
-	AppendDiagnostic(diag.Diagnostics) diag.Diagnostics
-}
-
 // DiagnosticError is an idiomatic Go error that seeks to match a subset of
 // the behavior of Hashicorp `diag.Diagnostic`.
 type DiagnosticError struct {
@@ -50,5 +45,20 @@ func (de DiagnosticError) AppendDiagnostic(diags diag.Diagnostics) diag.Diagnost
 		Summary:  de.Summary,
 		Detail:   de.Detail,
 	})
+	return diags
+}
+
+// AppendDiagnostic appends a `diag.Diagnostic` from an error.
+func AppendDiagnostic(err error, diags diag.Diagnostics) diag.Diagnostics {
+	if err == nil {
+		return diags
+	}
+
+	dp, ok := err.(DiagnosticsProvider)
+	if ok {
+		return dp.AppendDiagnostic(nil)
+	}
+
+	diags = append(diags, diag.FromErr(err)...)
 	return diags
 }
