@@ -63,12 +63,12 @@ func (ra *ResourceAuthor) Create(ctx context.Context, c booksclient.Client) erro
 // Read is the read (R) component of the CRUD lifecycle for
 // the `books_api_author` resource.
 func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error {
-	idStr := ra.d.Id()
-	id, err := idFromString(idStr)
+	err := ra.Populate()
 	if err != nil {
 		return err
 	}
 
+	id := ra.GetID()
 	gabir := booksclient.GetAuthorByIDRequest{AuthorID: id}
 	a, err := c.GetAuthorByID(ctx, gabir)
 	if err != nil {
@@ -85,8 +85,7 @@ func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error 
 // Update is the update (U) component of the CRUD lifecycle for
 // the `books_api_author` resource.
 func (ra *ResourceAuthor) Update(ctx context.Context, c booksclient.Client) error {
-	anyChange := ra.d.HasChange("first_name") || ra.d.HasChange("last_name")
-	if !anyChange {
+	if !ra.Changed() {
 		return ra.Read(ctx, c)
 	}
 
@@ -107,19 +106,17 @@ func (ra *ResourceAuthor) Update(ctx context.Context, c booksclient.Client) erro
 // Delete is the delete (D) component of the CRUD lifecycle for
 // the `books_api_author` resource.
 func (ra *ResourceAuthor) Delete(ctx context.Context, c booksclient.Client) error {
-	idStr := ra.d.Id()
-	id, err := idFromString(idStr)
+	err := ra.Populate()
 	if err != nil {
 		return err
 	}
 
+	id := ra.GetID()
 	dar := booksclient.DeleteAuthorRequest{AuthorID: id}
 	_, err = c.DeleteAuthorByID(ctx, dar)
 	if err != nil {
 		return err
 	}
 
-	// This is superfluous but added here for explicitness.
-	ra.d.SetId("")
 	return nil
 }
