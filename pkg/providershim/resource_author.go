@@ -27,29 +27,13 @@ import (
 // resourceAuthor returns the `author` resource in the Terraform provider for
 // the Books API.
 func resourceAuthor() *schema.Resource {
+	var stub *booksprovider.ResourceAuthor
 	return &schema.Resource{
 		CreateContext: resourceAuthorCreate,
 		ReadContext:   resourceAuthorRead,
 		UpdateContext: resourceAuthorUpdate,
 		DeleteContext: resourceAuthorDelete,
-		Schema: map[string]*schema.Schema{
-			"first_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"last_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"book_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
+		Schema:        stub.Schema(),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
