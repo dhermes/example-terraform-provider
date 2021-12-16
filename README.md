@@ -12,6 +12,7 @@ make restart-postgres
 # It's a bit janky, there is a race condition with grants causing occasional
 # errors, e.g.
 #
+# # ...
 # # module.books_grants.postgresql_grant.app_table_grant: Creation complete after 0s [id=books_app_books_books_table]
 # # ╷
 # # │ Error: could not execute revoke query: pq: tuple concurrently updated
