@@ -17,6 +17,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -27,6 +28,15 @@ INSERT INTO
   authors (id, first_name, last_name)
 VALUES
   ($1, $2, $3)
+`
+	updateAuthor = `
+UPDATE
+  authors
+SET
+  first_name = $2,
+  last_name = $3
+WHERE
+  id = $1
 `
 	getAuthorByID = `
 SELECT
@@ -82,6 +92,15 @@ FULL OUTER JOIN (
 ON
   a.id = b.author_id
 `
+	deleteAuthorByID = `
+DELETE FROM
+  authors AS a
+WHERE
+  a.id = $1 AND
+  NOT EXISTS (
+    SELECT 1 FROM books AS b WHERE b.author_id = a.id
+  )
+`
 )
 
 // InsertAuthor inserts an author into the database.
@@ -97,6 +116,25 @@ func InsertAuthor(ctx context.Context, pool *sql.DB, a Author) (uuid.UUID, error
 	}
 
 	return id, nil
+}
+
+// UpdateAuthor updates an author from the database directly by ID.
+func UpdateAuthor(ctx context.Context, pool *sql.DB, a Author) error {
+	result, err := pool.ExecContext(ctx, updateAuthor, a.ID, a.FirstName, a.LastName)
+	if err != nil {
+		return err
+	}
+
+	updateCount, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if updateCount == 0 {
+		return errors.New("could not update author, does not exist")
+	}
+
+	return nil
 }
 
 // GetAuthorByID gets an author from the database by ID.
@@ -151,4 +189,23 @@ func GetAllAuthors(ctx context.Context, pool *sql.DB) ([]Author, error) {
 	}
 
 	return authors, nil
+}
+
+// DeleteAuthorByID deletes an author from the database by ID.
+func DeleteAuthorByID(ctx context.Context, pool *sql.DB, id uuid.UUID) error {
+	result, err := pool.ExecContext(ctx, deleteAuthorByID, id)
+	if err != nil {
+		return err
+	}
+
+	deleteCount, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if deleteCount == 0 {
+		return errors.New("could not delete author, does not exist or still has books")
+	}
+
+	return nil
 }

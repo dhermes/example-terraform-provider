@@ -17,6 +17,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -31,6 +32,16 @@ WHERE
   EXISTS (
     SELECT 1 FROM authors WHERE id = $2 FOR UPDATE
   )
+`
+	updateBook = `
+UPDATE
+  books
+SET
+  author_id = $2,
+  title = $3,
+  publish_date = $4
+WHERE
+  id = $1
 `
 	getBookByID = `
 SELECT
@@ -47,6 +58,12 @@ FROM
   books
 WHERE
   author_id = $1
+`
+	deleteBookByID = `
+DELETE FROM
+  books
+WHERE
+  id = $1
 `
 )
 
@@ -67,6 +84,25 @@ func InsertBook(ctx context.Context, pool *sql.DB, b Book) (uuid.UUID, error) {
 	}
 
 	return id, nil
+}
+
+// UpdateBook updates a book from the database directly by ID.
+func UpdateBook(ctx context.Context, pool *sql.DB, b Book) error {
+	result, err := pool.ExecContext(ctx, updateBook, b.ID, b.AuthorID, b.Title, b.PublishDate)
+	if err != nil {
+		return err
+	}
+
+	updateCount, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if updateCount == 0 {
+		return errors.New("could not update book, does not exist")
+	}
+
+	return nil
 }
 
 // GetBookByID gets a book from the database by ID.
@@ -108,4 +144,23 @@ func GetAllBooksByAuthor(ctx context.Context, pool *sql.DB, authorID uuid.UUID) 
 	}
 
 	return books, nil
+}
+
+// DeleteBookByID deletes a book from the database by ID.
+func DeleteBookByID(ctx context.Context, pool *sql.DB, id uuid.UUID) error {
+	result, err := pool.ExecContext(ctx, deleteBookByID, id)
+	if err != nil {
+		return err
+	}
+
+	deleteCount, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if deleteCount == 0 {
+		return errors.New("could not delete book, does not exist")
+	}
+
+	return nil
 }
