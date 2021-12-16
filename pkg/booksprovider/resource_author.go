@@ -22,10 +22,23 @@ import (
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 )
 
-// ResourceAuthorCreate is the create (C) component of the CRUD lifecycle for
+// ResourceAuthor represents a `books_api_author` resource and directly
+// interacts with the Terraform plugin SDK to check for new or updated
+// values.
+type ResourceAuthor struct {
+	d *schema.ResourceData
+}
+
+// NewResourceAuthor creates a new `ResourceAuthor` from a Terraform resource
+// data struct.
+func NewResourceAuthor(d *schema.ResourceData) ResourceAuthor {
+	return ResourceAuthor{d: d}
+}
+
+// Create is the create (C) component of the CRUD lifecycle for
 // the `books_api_author` resource.
-func ResourceAuthorCreate(ctx context.Context, d *schema.ResourceData, c booksclient.Client) error {
-	a, err := authorFromResourceData(d)
+func (ra *ResourceAuthor) Create(ctx context.Context, c booksclient.Client) error {
+	a, err := authorFromResourceData(ra.d)
 	if err != nil {
 		return err
 	}
@@ -35,14 +48,14 @@ func ResourceAuthorCreate(ctx context.Context, d *schema.ResourceData, c bookscl
 		return err
 	}
 
-	d.SetId(aar.AuthorID.String())
-	return ResourceAuthorRead(ctx, d, c)
+	ra.d.SetId(aar.AuthorID.String())
+	return ra.Read(ctx, c)
 }
 
-// ResourceAuthorRead is the read (R) component of the CRUD lifecycle for
+// Read is the read (R) component of the CRUD lifecycle for
 // the `books_api_author` resource.
-func ResourceAuthorRead(ctx context.Context, d *schema.ResourceData, c booksclient.Client) error {
-	idStr := d.Id()
+func (ra *ResourceAuthor) Read(ctx context.Context, c booksclient.Client) error {
+	idStr := ra.d.Id()
 	id, err := idFromString(idStr)
 	if err != nil {
 		return err
@@ -54,17 +67,17 @@ func ResourceAuthorRead(ctx context.Context, d *schema.ResourceData, c booksclie
 		return err
 	}
 
-	err = d.Set("first_name", a.FirstName)
+	err = ra.d.Set("first_name", a.FirstName)
 	if err != nil {
 		return err
 	}
 
-	err = d.Set("last_name", a.LastName)
+	err = ra.d.Set("last_name", a.LastName)
 	if err != nil {
 		return err
 	}
 
-	err = d.Set("book_count", int(a.BookCount))
+	err = ra.d.Set("book_count", int(a.BookCount))
 	if err != nil {
 		return err
 	}
@@ -72,15 +85,15 @@ func ResourceAuthorRead(ctx context.Context, d *schema.ResourceData, c booksclie
 	return nil
 }
 
-// ResourceAuthorUpdate is the update (U) component of the CRUD lifecycle for
+// Update is the update (U) component of the CRUD lifecycle for
 // the `books_api_author` resource.
-func ResourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, c booksclient.Client) error {
-	anyChange := d.HasChange("first_name") || d.HasChange("last_name")
+func (ra *ResourceAuthor) Update(ctx context.Context, c booksclient.Client) error {
+	anyChange := ra.d.HasChange("first_name") || ra.d.HasChange("last_name")
 	if !anyChange {
-		return ResourceAuthorRead(ctx, d, c)
+		return ra.Read(ctx, c)
 	}
 
-	a, err := authorFromResourceData(d)
+	a, err := authorFromResourceData(ra.d)
 	if err != nil {
 		return err
 	}
@@ -90,13 +103,13 @@ func ResourceAuthorUpdate(ctx context.Context, d *schema.ResourceData, c bookscl
 		return err
 	}
 
-	return ResourceAuthorRead(ctx, d, c)
+	return ra.Read(ctx, c)
 }
 
-// ResourceAuthorDelete is the delete (D) component of the CRUD lifecycle for
+// Delete is the delete (D) component of the CRUD lifecycle for
 // the `books_api_author` resource.
-func ResourceAuthorDelete(ctx context.Context, d *schema.ResourceData, c booksclient.Client) error {
-	idStr := d.Id()
+func (ra *ResourceAuthor) Delete(ctx context.Context, c booksclient.Client) error {
+	idStr := ra.d.Id()
 	id, err := idFromString(idStr)
 	if err != nil {
 		return err
@@ -109,6 +122,6 @@ func ResourceAuthorDelete(ctx context.Context, d *schema.ResourceData, c bookscl
 	}
 
 	// This is superfluous but added here for explicitness.
-	d.SetId("")
+	ra.d.SetId("")
 	return nil
 }
