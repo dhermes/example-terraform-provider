@@ -88,6 +88,7 @@ func (ra *ResourceAuthor) Populate() error {
 
 	var err error
 
+	// first_name | string | required
 	firstName, ok := ra.d.Get("first_name").(string)
 	if !ok {
 		err = terraform.DiagnosticError{
@@ -97,6 +98,7 @@ func (ra *ResourceAuthor) Populate() error {
 		return err
 	}
 
+	// last_name | string | required
 	lastName, ok := ra.d.Get("last_name").(string)
 	if !ok {
 		err = terraform.DiagnosticError{
@@ -106,8 +108,22 @@ func (ra *ResourceAuthor) Populate() error {
 		return err
 	}
 
-	// TODO: Optional `books_count`?
+	// book_count | int | computed
+	bookCount := ra.BookCount
+	bookCountInterface := ra.d.Get("book_count")
+	if bookCountInterface != nil {
+		bc, ok := bookCountInterface.(int)
+		if !ok {
+			err = terraform.DiagnosticError{
+				Summary: "Could not determine author book count",
+				Detail:  "Invalid book count parameter type",
+			}
+			return err
+		}
+		bookCount = &bc
+	}
 
+	// id | uuid.UUID->string | computed
 	idStr := ra.d.Id()
 	id := ra.ID
 	if idStr != "" {
@@ -118,8 +134,10 @@ func (ra *ResourceAuthor) Populate() error {
 		id = &parsed
 	}
 
+	// Only populate fields after all parsing is complete without error.
 	ra.FirstName = &firstName
 	ra.LastName = &lastName
+	ra.BookCount = bookCount
 	ra.ID = id
 	return nil
 }
