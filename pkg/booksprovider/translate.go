@@ -16,9 +16,7 @@ package booksprovider
 
 import (
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
 	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
@@ -33,35 +31,4 @@ func idFromString(idStr string) (uuid.UUID, error) {
 		Detail:  "Invalid ID parameter value",
 	}
 	return uuid.Nil, err
-}
-
-func authorFromResourceData(d *schema.ResourceData) (*booksclient.Author, error) {
-	firstName, ok := d.Get("first_name").(string)
-	if !ok {
-		err := terraform.DiagnosticError{
-			Summary: "Could not determine author first name",
-			Detail:  "Invalid first name parameter type",
-		}
-		return nil, err
-	}
-	lastName, ok := d.Get("last_name").(string)
-	if !ok {
-		err := terraform.DiagnosticError{
-			Summary: "Could not determine author last name",
-			Detail:  "Invalid last name parameter type",
-		}
-		return nil, err
-	}
-
-	a := booksclient.Author{FirstName: firstName, LastName: lastName}
-	idStr := d.Id()
-	if idStr != "" {
-		id, diags := idFromString(idStr)
-		if diags != nil {
-			return nil, diags
-		}
-		a.ID = &id
-	}
-
-	return &a, nil
 }
