@@ -15,20 +15,36 @@
 package booksprovider
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 
 	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
-func idFromString(idStr string) (uuid.UUID, error) {
+func idFromString(idStr, fieldName string) (uuid.UUID, error) {
 	id, err := uuid.Parse(idStr)
 	if err == nil {
 		return id, nil
 	}
 
 	err = terraform.DiagnosticError{
-		Summary: "Could not determine ID",
-		Detail:  "Invalid ID parameter value",
+		Summary: fmt.Sprintf("Could not determine %s", fieldName),
+		Detail:  "Invalid UUID parameter value",
 	}
 	return uuid.Nil, err
+}
+
+func dateFromString(dateStr, fieldName string) (Date, error) {
+	t, err := time.ParseInLocation(dateLayout, dateStr, time.UTC)
+	if err == nil {
+		return Date{Time: t}, nil
+	}
+
+	err = terraform.DiagnosticError{
+		Summary: fmt.Sprintf("Could not determine %s", fieldName),
+		Detail:  "Invalid date parameter value",
+	}
+	return Date{}, err
 }

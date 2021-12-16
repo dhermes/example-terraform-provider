@@ -99,18 +99,12 @@ func (ra *ResourceAuthor) Update(ctx context.Context, c booksclient.Client) erro
 
 // Delete is the delete (D) component of the CRUD lifecycle for
 // the `books_api_author` resource.
+//
+// NOTE: This assumes the called has already invoked `ra.Populate()`, either
+//       directly or indirectly, e.g. via `NewResourceAuthor()`.
 func (ra *ResourceAuthor) Delete(ctx context.Context, c booksclient.Client) error {
-	err := ra.Populate()
-	if err != nil {
-		return err
-	}
-
 	id := ra.GetID()
 	dar := booksclient.DeleteAuthorRequest{AuthorID: id}
-	_, err = c.DeleteAuthorByID(ctx, dar)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := c.DeleteAuthorByID(ctx, dar)
+	return err
 }
