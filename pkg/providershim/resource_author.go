@@ -24,8 +24,8 @@ import (
 	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
-// resourceAuthor returns the `author` resource in the Terraform provider for
-// the Books API.
+// resourceAuthor returns the `books_api_author` resource in the Terraform
+// provider for the Books API.
 func resourceAuthor() *schema.Resource {
 	var stub *booksprovider.ResourceAuthor
 	return &schema.Resource{
