@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
+	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
 // Provider returns a Terraform provider for the Books API.
@@ -53,7 +54,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return c, nil
 	}
 
-	dp, ok := err.(booksprovider.DiagnosticsProvider)
+	dp, ok := err.(terraform.DiagnosticsProvider)
 	if ok {
 		return nil, dp.AppendDiagnostic(nil)
 	}

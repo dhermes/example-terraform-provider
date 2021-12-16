@@ -21,13 +21,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
+	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
 // ConfigureContext is a function for configuring the provider.
 func ConfigureContext(_ context.Context, d *schema.ResourceData) (booksclient.Client, error) {
 	addr, ok := d.Get("addr").(string)
 	if addr == "" || !ok {
-		err := DiagnosticError{
+		err := terraform.DiagnosticError{
 			Summary: "Unable to create Books API client",
 			Detail:  "Unable to determine address for Books API",
 		}
@@ -36,7 +37,7 @@ func ConfigureContext(_ context.Context, d *schema.ResourceData) (booksclient.Cl
 
 	_, err := url.Parse(addr)
 	if err != nil {
-		err := DiagnosticError{
+		err := terraform.DiagnosticError{
 			Summary: "Unable to create Books API client",
 			Detail:  "Failed to parse Books API base address as a URL",
 		}
