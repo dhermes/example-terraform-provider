@@ -209,3 +209,101 @@ GET_RESULT=$(curl \
   --header 'Content-Type: application/json' \
   "${BOOKS_ADDR}/v1alpha1/authors")
 echo "${GET_RESULT}" | jq
+
+## Delete Author By ID
+echo '--------------------------------------------------'
+echo ':: Deleting author Ernest Hemingway by ID:'
+curl \
+  --show-error --fail \
+  --include \
+  --request DELETE \
+  "${BOOKS_ADDR}/v1alpha1/authors/${AUTHOR_ID4}"
+
+## Add Author (again)
+echo '--------------------------------------------------'
+echo ':: Adding back author Ernest Hemingway after deletion:'
+RESPONSE_AUTHOR4=$(curl \
+  --silent --show-error --fail \
+  --data-binary '{"first_name": "Ernest", "last_name": "Hemingway"}' \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/author")
+AUTHOR_ID4=$(echo "${RESPONSE_AUTHOR4}" | jq '.author_id' -r)
+echo "Added back author Ernest Hemingway: ${AUTHOR_ID4}"
+
+## Update Author
+echo '--------------------------------------------------'
+echo ':: Modifying author Ernest Hemingway (twice):'
+curl \
+  --show-error --fail \
+  --include \
+  --data-binary "{\"id\": \"${AUTHOR_ID4}\", \"first_name\": \"Ernie\", \"last_name\": \"Hemingway\"}" \
+  --header 'Content-Type: application/json' \
+  --request PUT \
+  "${BOOKS_ADDR}/v1alpha1/author"
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/authors/${AUTHOR_ID4}")
+echo "${GET_RESULT}" | jq
+
+curl \
+  --show-error --fail \
+  --include \
+  --data-binary "{\"id\": \"${AUTHOR_ID4}\", \"first_name\": \"Ernest\", \"last_name\": \"Hemingway\"}" \
+  --header 'Content-Type: application/json' \
+  --request PUT \
+  "${BOOKS_ADDR}/v1alpha1/author"
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/authors/${AUTHOR_ID4}")
+echo "${GET_RESULT}" | jq
+
+## Delete Book By ID
+echo '--------------------------------------------------'
+echo ':: Deleting book East of Eden by ID:'
+curl \
+  --show-error --fail \
+  --include \
+  --request DELETE \
+  "${BOOKS_ADDR}/v1alpha1/books/${BOOK_ID4}"
+
+## Add Book (again)
+echo '--------------------------------------------------'
+echo ':: Adding back book East of Eden after deletion:'
+RESPONSE_BOOK4=$(curl \
+  --silent --show-error --fail \
+  --data-binary "{\"author_id\": \"${AUTHOR_ID2}\", \"title\": \"East of Eden\", \"publish_date\": \"1952-09-19T00:00:00Z\"}" \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/book")
+BOOK_ID4=$(echo "${RESPONSE_BOOK4}" | jq '.book_id' -r)
+echo "Added back book East of Eden by John Steinbeck: ${BOOK_ID4}"
+
+## Update Book
+echo '--------------------------------------------------'
+echo ':: Modifying book East of Eden (twice):'
+curl \
+  --show-error --fail \
+  --include \
+  --data-binary "{\"id\": \"${BOOK_ID4}\", \"author_id\": \"${AUTHOR_ID2}\", \"title\": \"West of LA\", \"publish_date\": \"1970-01-01T00:00:00Z\"}" \
+  --header 'Content-Type: application/json' \
+  --request PUT \
+  "${BOOKS_ADDR}/v1alpha1/book"
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/books/${BOOK_ID4}")
+echo "${GET_RESULT}" | jq
+
+curl \
+  --show-error --fail \
+  --include \
+  --data-binary "{\"id\": \"${BOOK_ID4}\", \"author_id\": \"${AUTHOR_ID2}\", \"title\": \"East of Eden\", \"publish_date\": \"1952-09-19T00:00:00Z\"}" \
+  --header 'Content-Type: application/json' \
+  --request PUT \
+  "${BOOKS_ADDR}/v1alpha1/book"
+GET_RESULT=$(curl \
+  --silent --show-error --fail \
+  --header 'Content-Type: application/json' \
+  "${BOOKS_ADDR}/v1alpha1/books/${BOOK_ID4}")
+echo "${GET_RESULT}" | jq

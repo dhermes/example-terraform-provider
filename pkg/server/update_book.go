@@ -25,31 +25,13 @@ import (
 )
 
 // NOTE: Ensure that
-//       * `oneBookDispatch` satisfies `handleFunc`.
-//       * `addBook` satisfies `handleFunc`.
+//       * `updateBook` satisfies `handleFunc`.
 var (
-	_ handleFunc = oneBookDispatch
-	_ handleFunc = getAuthorByID
+	_ handleFunc = updateBook
 )
 
-// oneBookDispatch dispatches to `addBook()` for a `POST` request and to
-// `updateBook()` for a `PUT` request.
-func oneBookDispatch(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPost {
-		addBook(w, req)
-		return
-	}
-
-	if req.Method == http.MethodPut {
-		updateBook(w, req)
-		return
-	}
-
-	notAllowed(w, req, req.Method+"-mismatch") // Ensure the method is wrong
-}
-
-func addBook(w http.ResponseWriter, req *http.Request) {
-	if notAllowed(w, req, http.MethodPost) {
+func updateBook(w http.ResponseWriter, req *http.Request) {
+	if notAllowed(w, req, http.MethodPut) {
 		return
 	}
 	if contentTypeNotJSON(w, req) {
@@ -60,32 +42,28 @@ func addBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var abr addBookRequest
-	if invalidJSONBody(w, req, &abr) {
+	var ubr updateBookRequest
+	if invalidJSONBody(w, req, &ubr) {
 		return
 	}
 
 	ctx := req.Context()
 	pool := model.GetPool(ctx)
-	b := model.Book{AuthorID: abr.AuthorID, Title: abr.Title, PublishDate: abr.PublishDate}
-	id, err := model.InsertBook(ctx, pool, b)
+	b := model.Book{ID: ubr.ID, AuthorID: ubr.AuthorID, Title: ubr.Title, PublishDate: ubr.PublishDate}
+	err := model.UpdateBook(ctx, pool, b)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "failed to insert book"}`+"\n")
+		fmt.Fprintf(w, `{"error": "failed to update book"}`+"\n")
 		return
 	}
 
-	response := addBookResponse{BookID: id.String()}
-	serializeJSONResponse(w, response)
+	w.WriteHeader(http.StatusNoContent)
 }
 
-type addBookRequest struct {
+type updateBookRequest struct {
+	ID          uuid.UUID  `json:"id"`
 	Title       string     `json:"title"`
 	AuthorID    uuid.UUID  `json:"author_id"`
 	PublishDate *time.Time `json:"publish_date"`
-}
-
-type addBookResponse struct {
-	BookID string `json:"book_id"`
 }

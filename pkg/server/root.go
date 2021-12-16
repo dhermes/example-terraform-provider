@@ -26,10 +26,10 @@ func Run(ctx context.Context, c Config) error {
 
 	m.HandleFunc("/v1alpha1/author", oneAuthorDispatch)
 	m.HandleFunc("/v1alpha1/authors", getAuthors)
-	m.HandleFunc("/v1alpha1/authors/", getAuthorByID)
-	m.HandleFunc("/v1alpha1/book", addBook)
+	m.HandleFunc("/v1alpha1/authors/", authorByIDDispatch)
+	m.HandleFunc("/v1alpha1/book", oneBookDispatch)
 	m.HandleFunc("/v1alpha1/books", getBooks)
-	m.HandleFunc("/v1alpha1/books/", getBookByID)
+	m.HandleFunc("/v1alpha1/books/", bookByIDDispatch)
 	m.HandleFunc("/", defaultHandler)
 
 	s := &http.Server{

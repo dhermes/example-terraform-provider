@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -26,34 +25,13 @@ import (
 )
 
 // NOTE: Ensure that
-//       * `bookByIDDispatch` satisfies `handleFunc`.
-//       * `getBook` satisfies `handleFunc`.
+//       * `deleteBookByID` satisfies `handleFunc`.
 var (
-	_ handleFunc = bookByIDDispatch
-	_ handleFunc = getBookByID
+	_ handleFunc = deleteBookByID
 )
 
-// bookByIDDispatch dispatches to `getBookByID()` for a `GET` request and
-// to `deleteBookByID()` for a `DELETE` request.
-func bookByIDDispatch(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodGet {
-		getBookByID(w, req)
-		return
-	}
-
-	if req.Method == http.MethodDelete {
-		deleteBookByID(w, req)
-		return
-	}
-
-	notAllowed(w, req, req.Method+"-mismatch") // Ensure the method is wrong
-}
-
-func getBookByID(w http.ResponseWriter, req *http.Request) {
-	if notAllowed(w, req, http.MethodGet) {
-		return
-	}
-	if contentTypeNotJSON(w, req) {
+func deleteBookByID(w http.ResponseWriter, req *http.Request) {
+	if notAllowed(w, req, http.MethodDelete) {
 		return
 	}
 	if !strings.HasPrefix(req.URL.Path, "/v1alpha1/books/") {
@@ -72,34 +50,14 @@ func getBookByID(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 	pool := model.GetPool(ctx)
-	b, err := model.GetBookByID(ctx, pool, id)
+	err = model.DeleteBookByID(ctx, pool, id)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		// TODO: Consider supporting a 404 here
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "failed to get book by ID"}`+"\n")
+		fmt.Fprintf(w, `{"error": "failed to delete book by ID"}`+"\n")
 		return
 	}
 
-	serializeJSONResponse(w, dbBookToResult(b))
-}
-
-type bookResponse struct {
-	ID          string     `json:"id,omitempty"`
-	AuthorID    string     `json:"author_id"`
-	Title       string     `json:"title"`
-	PublishDate *time.Time `json:"publish_date,omitempty"`
-}
-
-func dbBookToResult(b *model.Book) bookResponse {
-	br := bookResponse{
-		ID:       b.ID.String(),
-		AuthorID: b.AuthorID.String(),
-		Title:    b.Title,
-	}
-	if b.PublishDate != nil {
-		t := b.PublishDate.UTC()
-		br.PublishDate = &t
-	}
-	return br
+	w.WriteHeader(http.StatusNoContent)
 }

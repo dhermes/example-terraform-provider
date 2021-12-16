@@ -29,8 +29,9 @@ var (
 	_ handleFunc = addAuthor
 )
 
-// oneAuthorDispatch dispatches to `addAuthor()` for a `POST` request and
-// to `getAuthorByName()` for a `GET` request.
+// oneAuthorDispatch dispatches to `addAuthor()` for a `POST` request,
+// to `getAuthorByName()` for a `GET` request and to `updateAuthor()` for a
+// `PUT` request.
 func oneAuthorDispatch(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		addAuthor(w, req)
@@ -39,6 +40,11 @@ func oneAuthorDispatch(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == http.MethodGet {
 		getAuthorByName(w, req)
+		return
+	}
+
+	if req.Method == http.MethodPut {
+		updateAuthor(w, req)
 		return
 	}
 

@@ -25,34 +25,13 @@ import (
 )
 
 // NOTE: Ensure that
-//       * `authorByIDDispatch` satisfies `handleFunc`.
-//       * `getAuthor` satisfies `handleFunc`.
+//       * `deleteAuthorByID` satisfies `handleFunc`.
 var (
-	_ handleFunc = authorByIDDispatch
-	_ handleFunc = getAuthorByID
+	_ handleFunc = deleteAuthorByID
 )
 
-// authorByIDDispatch dispatches to `getAuthorByID()` for a `GET` request and
-// to `deleteAuthorByID()` for a `DELETE` request.
-func authorByIDDispatch(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodGet {
-		getAuthorByID(w, req)
-		return
-	}
-
-	if req.Method == http.MethodDelete {
-		deleteAuthorByID(w, req)
-		return
-	}
-
-	notAllowed(w, req, req.Method+"-mismatch") // Ensure the method is wrong
-}
-
-func getAuthorByID(w http.ResponseWriter, req *http.Request) {
-	if notAllowed(w, req, http.MethodGet) {
-		return
-	}
-	if contentTypeNotJSON(w, req) {
+func deleteAuthorByID(w http.ResponseWriter, req *http.Request) {
+	if notAllowed(w, req, http.MethodDelete) {
 		return
 	}
 	if !strings.HasPrefix(req.URL.Path, "/v1alpha1/authors/") {
@@ -71,30 +50,14 @@ func getAuthorByID(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 	pool := model.GetPool(ctx)
-	a, err := model.GetAuthorByID(ctx, pool, id)
+	err = model.DeleteAuthorByID(ctx, pool, id)
 	if err != nil {
 		w.Header().Set(HeaderContentType, ContentTypeApplicationJSON)
 		// TODO: Consider supporting a 404 here
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, `{"error": "failed to get author by ID"}`+"\n")
+		fmt.Fprintf(w, `{"error": "failed to delete author by ID"}`+"\n")
 		return
 	}
 
-	serializeJSONResponse(w, dbAuthorToResult(a))
-}
-
-type authorResponse struct {
-	ID        string `json:"id,omitempty"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	BookCount uint32 `json:"book_count"`
-}
-
-func dbAuthorToResult(a *model.Author) authorResponse {
-	return authorResponse{
-		ID:        a.ID.String(),
-		FirstName: a.FirstName,
-		LastName:  a.LastName,
-		BookCount: a.BookCount,
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
