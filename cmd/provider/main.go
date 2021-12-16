@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
-	providershim "github.com/dhermes/example-terraform-provider/pkg/books"
+	"github.com/dhermes/example-terraform-provider/pkg/providershim"
 )
 
 func main() {
