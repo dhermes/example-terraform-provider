@@ -12,5 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package books implements the core Books Terraform Provider.
+// Package providershim implements the core Books Terraform Provider.
+//
+// It is named "shim" because it translates idiomatic Go into code that
+// more tightly integrates with the Terraform interfaces (which have lots of
+// `interface{}` and internal patterns like diagnostics).
 package providershim
