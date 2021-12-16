@@ -15,7 +15,6 @@
 package providershim
 
 import (
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
@@ -36,20 +35,4 @@ func getClientFromMeta(meta interface{}) (booksclient.Client, diag.Diagnostics) 
 		},
 	}
 	return nil, diags
-}
-
-func idFromString(idStr string) (uuid.UUID, diag.Diagnostics) {
-	id, err := uuid.Parse(idStr)
-	if err == nil {
-		return id, nil
-	}
-
-	diags := []diag.Diagnostic{
-		{
-			Severity: diag.Error,
-			Summary:  "Could not determine ID",
-			Detail:   "Invalid ID parameter value",
-		},
-	}
-	return uuid.Nil, diags
 }

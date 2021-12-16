@@ -16,45 +16,24 @@ package providershim
 
 import (
 	"context"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/dhermes/example-terraform-provider/pkg/booksclient"
+	"github.com/dhermes/example-terraform-provider/pkg/booksprovider"
+	"github.com/dhermes/example-terraform-provider/pkg/terraform"
 )
 
-const (
-	dateLayout = "2006-01-02"
-)
-
-// resourceBook returns the `book` resource in the Terraform provider for
-// the Books API.
+// resourceBook returns the `books_api_book` resource in the Terraform provider
+// for the Books API.
 func resourceBook() *schema.Resource {
+	var stub *booksprovider.ResourceBook
 	return &schema.Resource{
 		CreateContext: resourceBookCreate,
 		ReadContext:   resourceBookRead,
 		UpdateContext: resourceBookUpdate,
 		DeleteContext: resourceBookDelete,
-		Schema: map[string]*schema.Schema{
-			"title": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"author_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"publish_date": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
+		Schema:        stub.Schema(),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -67,18 +46,13 @@ func resourceBookCreate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	b, diags := bookFromResourceData(d)
-	if diags != nil {
-		return diags
-	}
-
-	abr, err := c.AddBook(ctx, *b)
+	rb, err := booksprovider.NewResourceBook(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return terraform.AppendDiagnostic(err, nil)
 	}
 
-	d.SetId(abr.BookID.String())
-	return resourceBookRead(ctx, d, meta)
+	err = rb.Create(ctx, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceBookRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -87,60 +61,28 @@ func resourceBookRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		return diags
 	}
 
-	idStr := d.Id()
-	id, diags := idFromString(idStr)
-	if diags != nil {
-		return diags
-	}
-
-	gbbir := booksclient.GetBookByIDRequest{BookID: id}
-	b, err := c.GetBookByID(ctx, gbbir)
+	rb, err := booksprovider.NewResourceBook(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return terraform.AppendDiagnostic(err, nil)
 	}
 
-	err = d.Set("title", b.Title)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("author_id", b.AuthorID.String())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if b.PublishDate != nil {
-		err = d.Set("publish_date", b.PublishDate.Format(dateLayout))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	return nil
+	err = rb.Read(ctx, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceBookUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	anyChange := d.HasChange("title") || d.HasChange("author_id") || d.HasChange("publish_date")
-	if !anyChange {
-		return resourceBookRead(ctx, d, meta)
-	}
-
 	c, diags := getClientFromMeta(meta)
 	if diags != nil {
 		return diags
 	}
 
-	b, diags := bookFromResourceData(d)
-	if diags != nil {
-		return diags
-	}
-
-	_, err := c.UpdateBook(ctx, *b)
+	rb, err := booksprovider.NewResourceBook(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return terraform.AppendDiagnostic(err, nil)
 	}
 
-	return resourceBookRead(ctx, d, meta)
+	err = rb.Update(ctx, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
 
 func resourceBookDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -149,73 +91,11 @@ func resourceBookDelete(ctx context.Context, d *schema.ResourceData, meta interf
 		return diags
 	}
 
-	idStr := d.Id()
-	id, diags := idFromString(idStr)
-	if diags != nil {
-		return diags
-	}
-
-	dbr := booksclient.DeleteBookRequest{BookID: id}
-	_, err := c.DeleteBookByID(ctx, dbr)
+	rb, err := booksprovider.NewResourceBook(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return terraform.AppendDiagnostic(err, nil)
 	}
 
-	// This is superfluous but added here for explicitness.
-	d.SetId("")
-	return nil
-}
-
-func bookFromResourceData(d *schema.ResourceData) (*booksclient.Book, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	authorIDStr, ok := d.Get("author_id").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine author ID",
-			Detail:   "Invalid author ID parameter type",
-		})
-		return nil, diags
-	}
-	title, ok := d.Get("title").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine book title",
-			Detail:   "Invalid book title parameter type",
-		})
-		return nil, diags
-	}
-	publishDateStr, ok := d.Get("publish_date").(string)
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Could not determine book publish date",
-			Detail:   "Invalid book publish date parameter type",
-		})
-		return nil, diags
-	}
-
-	authorID, err := uuid.Parse(authorIDStr)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-	publishDate, err := time.Parse(dateLayout, publishDateStr)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-	publishDate = publishDate.UTC()
-
-	b := booksclient.Book{Title: title, AuthorID: authorID, PublishDate: &publishDate}
-	idStr := d.Id()
-	if idStr != "" {
-		id, diags := idFromString(idStr)
-		if diags != nil {
-			return nil, diags
-		}
-		b.ID = &id
-	}
-
-	return &b, nil
+	err = rb.Delete(ctx, c)
+	return terraform.AppendDiagnostic(err, nil)
 }
