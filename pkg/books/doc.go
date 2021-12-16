@@ -13,4 +13,4 @@
 // limitations under the License.
 
 // Package books implements the core Books Terraform Provider.
-package books
+package providershim
