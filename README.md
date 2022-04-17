@@ -75,6 +75,19 @@ $ tree .terraform/
                     └── linux_amd64 -> /home/dhermes/.terraform.d/plugins/tf-registry.invalid/dhermes/books/0.0.1/linux_amd64
 
 6 directories, 0 files
+$
+$ # OR
+$
+$ tree .terraform/
+.terraform
+└── providers
+    └── tf-registry.invalid
+        └── dhermes
+            └── books
+                └── 0.0.1
+                    └── darwin_arm64 -> /Users/dhermes/.terraform.d/plugins/tf-registry.invalid/dhermes/books/0.0.1/darwin_arm64
+
+6 directories, 0 files
 ```
 
 then apply the workspace:
