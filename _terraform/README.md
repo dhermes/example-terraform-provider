@@ -6,6 +6,6 @@ Current version used:
 
 ```
 $ terraform version
-Terraform v1.1.0
-on linux_amd64
+Terraform v1.1.8
+on darwin_arm64
 ```
