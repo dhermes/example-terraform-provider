@@ -97,7 +97,8 @@ seed-data:
 
 .PHONY: clean
 clean:
-	rm --force \
+	@# NOTE: -f is --force / -r is --recursive (long flags unavailable on macOS)
+	rm -f \
 	  _terraform/workspaces/books/.terraform.lock.hcl \
 	  _terraform/workspaces/books/terraform.tfstate \
 	  _terraform/workspaces/books/terraform.tfstate.backup \
@@ -107,11 +108,10 @@ clean:
 	  _terraform/workspaces/docker/.terraform.lock.hcl \
 	  _terraform/workspaces/docker/terraform.tfstate \
 	  _terraform/workspaces/docker/terraform.tfstate.backup
-	rm --force --recursive \
+	rm -f -r \
 	  _terraform/workspaces/books/.terraform/ \
 	  _terraform/workspaces/database/.terraform/ \
-	  _terraform/workspaces/docker/.terraform/
-	rm --force --recursive \
+	  _terraform/workspaces/docker/.terraform/ \
 	  "$(INSTALL_TF_PATH)/"
 	docker rm --force \
 	  dev-postgres-books
@@ -131,7 +131,8 @@ shellcheck: _require-shellcheck
 
 .PHONY: install-terraform-provider
 install-terraform-provider:
-	@mkdir --parents "$(INSTALL_TF_PATH)"
+	@# NOTE: -p is --parents (long flags unavailable on macOS)
+	@mkdir -p "$(INSTALL_TF_PATH)"
 	CGO_ENABLED=0 go build \
 	  -ldflags="-s -w" \
 	  -trimpath \
