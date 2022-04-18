@@ -296,14 +296,16 @@ books_api_author.grr_martin: Destruction complete after 0s
 Apply complete! Resources: 0 added, 0 changed, 7 destroyed.
 $
 $
-$ psql --dbname 'postgres://books_app:testpassword_app@127.0.0.1:22411/books' --command "SELECT * FROM authors WHERE last_name IN ('Martin', 'Vonnegut')"                  id                  | first_name | last_name
+$ psql --dbname 'postgres://books_app:testpassword_app@127.0.0.1:22411/books' --command "SELECT * FROM authors WHERE last_name IN ('Martin', 'Vonnegut')"
+                  id                  | first_name | last_name
 --------------------------------------+------------+-----------
  f4c5a610-753a-4940-8314-c5dff54477af | Kurt       | Vonnegut
 (1 row)
 
 $
 $
-$ psql --dbname 'postgres://books_app:testpassword_app@127.0.0.1:22411/books' --command "SELECT * FROM books WHERE author_id IN ('f4c5a610-753a-4940-8314-c5dff54477af', '04a76223-6d29-43d7-bcae-744773efd964')" id | author_id | title | publish_date
+$ psql --dbname 'postgres://books_app:testpassword_app@127.0.0.1:22411/books' --command "SELECT * FROM books WHERE author_id IN ('f4c5a610-753a-4940-8314-c5dff54477af', '04a76223-6d29-43d7-bcae-744773efd964')"
+ id | author_id | title | publish_date
 ----+-----------+-------+--------------
 (0 rows)
 
